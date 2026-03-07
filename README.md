@@ -85,46 +85,20 @@ npm run dev
 
 ## API 接口文档
 
-### GET /api/todos
+### Swagger UI 文档
 
-获取所有 todo 列表，按创建时间倒序排列。
+项目集成了 Swagger UI，提供了交互式的 API 文档界面：
 
-**响应示例**：
+- **访问地址**：`http://localhost:3000/api/swagger-ui`
+- **功能**：
+  - 查看所有 API 接口
+  - 测试 API 接口
+  - 查看请求和响应格式
 
-```json
-[
-  {
-    "id": "010eadbc-fb11-4663-a144-c15946c2fdc9",
-    "title": "测试 todo",
-    "completed": false,
-    "created_at": "2026-03-07T01:12:35.145Z"
-  }
-]
-```
+### API 端点
 
-### POST /api/todos
-
-创建新的 todo。
-
-**请求体**：
-
-```json
-{
-  "title": "测试 todo",
-  "completed": false
-}
-```
-
-**响应示例**：
-
-```json
-{
-  "id": "010eadbc-fb11-4663-a144-c15946c2fdc9",
-  "title": "测试 todo",
-  "completed": false,
-  "created_at": "2026-03-07T01:12:35.145Z"
-}
-```
+- **GET /api/todos** - 获取所有 todo 列表
+- **POST /api/todos** - 创建新的 todo
 
 ## 测试方法
 
@@ -159,8 +133,12 @@ node test-db.js
 ```
 ├── app/
 │   └── api/
-│       └── todos/
-│           └── route.ts     # Todo API 路由
+│       ├── todos/
+│       │   └── route.ts     # Todo API 路由
+│       ├── swagger/
+│       │   └── route.ts     # Swagger 规范生成接口
+│       └── swagger-ui/
+│           └── route.ts     # Swagger UI 页面
 ├── db/
 │   ├── client.ts            # 数据库客户端封装
 │   ├── init.sql             # 数据库初始化脚本
@@ -169,6 +147,8 @@ node test-db.js
 │   └── validators.ts        # Zod Schema 定义
 ├── tests/
 │   └── db.test.ts           # 数据库测试脚本
+├── public/
+│   └── swagger-ui.html      # Swagger UI 静态页面
 ├── .env                     # 环境变量配置
 ├── .env.example             # 环境变量示例
 ├── docker-compose.yml       # Docker 配置

@@ -52,3 +52,4 @@ function testGET() {
 
 // 先测试 POST，再测试 GET
 testPOST();
+testGET();
