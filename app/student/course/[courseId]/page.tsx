@@ -38,7 +38,7 @@ export default function CourseDetailPage() {
 
         if (!accessToken) {
           // 未登录，重定向到登录页面
-          navigate('/');
+          router.push('/');
           return;
         }
 
