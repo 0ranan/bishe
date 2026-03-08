@@ -11,7 +11,7 @@ import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
  */
 export async function GET(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
-    const courseId = params.courseId;
+    const courseId = (await params).courseId;
 
     // 从请求头获取 token
     const authorization = request.headers.get('authorization');

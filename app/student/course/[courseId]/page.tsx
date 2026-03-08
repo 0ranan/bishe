@@ -153,14 +153,12 @@ export default function CourseDetailPage() {
                     <div className="text-sm text-gray-500">时长: {video.duration}</div>
                   </div>
                   <div className="flex-shrink-0">
-                    <a
-                      href={video.video_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => router.push(`/student/course/${courseId}/video/${video.id}`)}
                       className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
                     >
                       观看视频
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

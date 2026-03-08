@@ -263,3 +263,26 @@ SELECT
 FROM courses co
 WHERE co.course_id = 'C002'
 ON CONFLICT DO NOTHING;
+
+-- 创建视频评价表
+CREATE TABLE IF NOT EXISTS video_comments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    video_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    content TEXT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (video_id) REFERENCES course_videos(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- 创建视频播放时长记录表
+CREATE TABLE IF NOT EXISTS video_play_duration (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    student_id UUID NOT NULL,
+    video_id UUID NOT NULL,
+    duration INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (video_id) REFERENCES course_videos(id) ON DELETE CASCADE
+);
