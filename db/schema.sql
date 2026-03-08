@@ -200,9 +200,9 @@ CREATE TABLE IF NOT EXISTS course_videos (
 INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
 SELECT 
     co.id, 
-    'https://example.com/videos/c-language/lesson1.mp4', 
-    'C语言入门', 
-    '45:30', 
+    'http://localhost:8080/video/c语言期末速成3小时/1-第一节：C语言期末速成介绍-4K 超高清-AVC.mp4', 
+    'C语言期末速成介绍', 
+    '15:00', 
     1
 FROM courses co
 WHERE co.course_id = 'C001'
@@ -211,9 +211,9 @@ ON CONFLICT DO NOTHING;
 INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
 SELECT 
     co.id, 
-    'https://example.com/videos/c-language/lesson2.mp4', 
-    'C语言基本语法', 
-    '50:15', 
+    'http://localhost:8080/video/c语言期末速成3小时/2-第二节：C语言基础知识-4K 超高清-AVC.mp4', 
+    'C语言基础知识', 
+    '20:00', 
     2
 FROM courses co
 WHERE co.course_id = 'C001'
@@ -222,10 +222,87 @@ ON CONFLICT DO NOTHING;
 INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
 SELECT 
     co.id, 
-    'https://example.com/videos/c-language/lesson3.mp4', 
-    'C语言函数', 
-    '48:20', 
+    'http://localhost:8080/video/c语言期末速成3小时/3-第三节：输出函数printf-4K 超高清-AVC.mp4', 
+    '输出函数printf', 
+    '18:00', 
     3
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/4-第四节：输入函数scanf-4K 超高清-AVC.mp4', 
+    '输入函数scanf', 
+    '16:00', 
+    4
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/5-第五节：算数运算符和表达式-4K 超高清-AVC.mp4', 
+    '算数运算符和表达式', 
+    '14:00', 
+    5
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/6-第六节：关系运算符和逻辑运算符-4K 超高清-AVC.mp4', 
+    '关系运算符和逻辑运算符', 
+    '16:00', 
+    6
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/7-第七节：分支结构-4K 超高清-AVC.mp4', 
+    '分支结构', 
+    '18:00', 
+    7
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/8-第八节：循环结构-4K 超高清-AVC.mp4', 
+    '循环结构', 
+    '20:00', 
+    8
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/9-第九节：数组-4K 超高清-AVC.mp4', 
+    '数组', 
+    '19:00', 
+    9
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/c语言期末速成3小时/10-第十节：函数-4K 超高清-AVC.mp4', 
+    '函数', 
+    '22:00', 
+    10
 FROM courses co
 WHERE co.course_id = 'C001'
 ON CONFLICT DO NOTHING;
@@ -234,9 +311,9 @@ ON CONFLICT DO NOTHING;
 INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
 SELECT 
     co.id, 
-    'https://example.com/videos/math/lesson1.mp4', 
-    '高等数学入门', 
-    '55:40', 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/1-第一讲：极限与连续（一）-720P 准高清-AVC.mp4', 
+    '极限与连续（一）', 
+    '25:00', 
     1
 FROM courses co
 WHERE co.course_id = 'C002'
@@ -245,9 +322,9 @@ ON CONFLICT DO NOTHING;
 INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
 SELECT 
     co.id, 
-    'https://example.com/videos/math/lesson2.mp4', 
-    '极限与连续', 
-    '52:10', 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/2-第二讲：极限与连续（二）-720P 准高清-AVC.mp4', 
+    '极限与连续（二）', 
+    '22:00', 
     2
 FROM courses co
 WHERE co.course_id = 'C002'
@@ -256,10 +333,109 @@ ON CONFLICT DO NOTHING;
 INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
 SELECT 
     co.id, 
-    'https://example.com/videos/math/lesson3.mp4', 
-    '导数与微分', 
-    '49:30', 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/3-提醒：配套电子讲义、章节测试题获取方法-720P 准高清-AVC.mp4', 
+    '配套电子讲义、章节测试题获取方法', 
+    '5:00', 
     3
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/4-第三讲：导数与微分-720P 准高清-AVC.mp4', 
+    '导数与微分', 
+    '28:00', 
+    4
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/5-第四讲：微分中值定理及导数的应用（一）-720P 准高清-AVC.mp4', 
+    '微分中值定理及导数的应用（一）', 
+    '30:00', 
+    5
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/6-第五讲：微分中值定理及导数的应用（二）-720P 准高清-AVC.mp4', 
+    '微分中值定理及导数的应用（二）', 
+    '26:00', 
+    6
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/7-第六讲：不定积分（一）-720P 准高清-AVC.mp4', 
+    '不定积分（一）', 
+    '25:00', 
+    7
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/8-第六讲：不定积分（二）-720P 准高清-AVC.mp4', 
+    '不定积分（二）', 
+    '24:00', 
+    8
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/9-第七讲：定积分及其应用（一）-720P 准高清-AVC.mp4', 
+    '定积分及其应用（一）', 
+    '27:00', 
+    9
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/10-第七讲：定积分及其应用（二）-720P 准高清-AVC.mp4', 
+    '定积分及其应用（二）', 
+    '26:00', 
+    10
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/11-第八讲：微分方程（有的学校期末不考这一章）-720P 准高清-AVC.mp4', 
+    '微分方程', 
+    '28:00', 
+    11
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'http://localhost:8080/video/《高等数学(上)》6小时速成课/《高等数学(上)》6小时速成课  框框老师（突击课，适合高等数学(微积分)期末考试、期中考试、补考、重修、专升本，考试不挂科）/12-课程的最后-720P 准高清-AVC.mp4', 
+    '课程的最后', 
+    '3:00', 
+    12
 FROM courses co
 WHERE co.course_id = 'C002'
 ON CONFLICT DO NOTHING;

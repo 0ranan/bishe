@@ -51,3 +51,5 @@ temp/
 
 # TypeScript
 *.tsbuildinfo
+
+nginx/video
