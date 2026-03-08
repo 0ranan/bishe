@@ -25,19 +25,37 @@ export default function Home() {
 
     setLoading(true);
     try {
-      // 这里可以添加登录逻辑
-      console.log('登录信息:', {
-        type: isStudent ? 'student' : 'teacher',
-        id,
-        password
+      // 发送登录请求
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: isStudent ? 'student' : 'teacher',
+          id,
+          password
+        }),
       });
-      // 模拟登录成功
-      setTimeout(() => {
-        setLoading(false);
-        alert('登录成功！');
-      }, 1000);
+
+      // 解析响应
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '登录失败');
+      }
+
+      // 存储 token 到本地存储
+      localStorage.setItem('accessToken', data.tokens.accessToken);
+      localStorage.setItem('refreshToken', data.tokens.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // 登录成功
+      setLoading(false);
+      alert('登录成功！');
+      // 可以在这里跳转到其他页面
     } catch (err) {
-      setError('登录失败，请重试');
+      setError(err instanceof Error ? err.message : '登录失败，请重试');
       setLoading(false);
     }
   };
