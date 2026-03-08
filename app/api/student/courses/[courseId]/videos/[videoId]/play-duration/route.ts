@@ -30,7 +30,7 @@ export async function POST(
     // 插入播放时长记录
     await sql`
       INSERT INTO video_play_duration (student_id, video_id, duration)
-      VALUES (${decoded.userId}, ${videoId}, ${duration})
+      VALUES (${decoded.id}, ${videoId}, ${duration})
     `;
 
     return NextResponse.json({ message: '播放时长记录成功' });

@@ -71,13 +71,13 @@ export async function POST(
     // 插入评价
     const [comment] = await sql`
       INSERT INTO video_comments (video_id, student_id, content, rating)
-      VALUES (${videoId}, ${decoded.userId}, ${content}, ${rating})
+      VALUES (${videoId}, ${decoded.id}, ${content}, ${rating})
       RETURNING id, student_id, content, rating, created_at
     `;
 
     // 获取学生姓名
     const [student] = await sql`
-      SELECT name FROM students WHERE id = ${decoded.userId}
+      SELECT name FROM students WHERE id = ${decoded.id}
     `;
 
     return NextResponse.json({
