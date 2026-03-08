@@ -65,15 +65,13 @@ docker-compose up -d
 
 ### 5. 初始化数据库
 
-执行 schema.sql 文件创建 todos 表：
+使用新的测试脚本执行 schema.sql 文件创建所有表：
 
 ```bash
-# Windows PowerShell
-get-content db/schema.sql | docker exec -i vibe_postgres psql -U vibe_user -d vibe_db
-
-# Linux/macOS
-docker exec -i vibe_postgres psql -U vibe_user -d vibe_db < db/schema.sql
+node script/test-db-schema.js
 ```
+
+该脚本会自动连接数据库，执行 schema.sql 文件中的所有 SQL 语句，并验证所有表是否创建成功。
 
 ### 6. 启动开发服务器
 
@@ -145,6 +143,8 @@ node test-db.js
 │   └── schema.sql           # 数据库表结构定义
 ├── lib/
 │   └── validators.ts        # Zod Schema 定义
+├── script/
+│   └── test-db-schema.js    # 数据库结构测试脚本
 ├── tests/
 │   └── db.test.ts           # 数据库测试脚本
 ├── public/
@@ -156,6 +156,67 @@ node test-db.js
 ├── tsconfig.json            # TypeScript 配置
 └── next-env.d.ts            # Next.js 类型声明
 ```
+
+## 数据库表结构
+
+本项目使用 UUID 作为所有表的主键，以下是详细的表结构：
+
+### 1. todos 表
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | UUID | PRIMARY KEY | 任务ID |
+| title | TEXT | NOT NULL | 任务标题 |
+| completed | BOOLEAN | DEFAULT false | 是否完成 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+### 2. students 表
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | UUID | PRIMARY KEY | 学生主键ID |
+| student_id | VARCHAR(20) | NOT NULL UNIQUE | 学号 |
+| password | VARCHAR(255) | NOT NULL | 密码 |
+| name | VARCHAR(50) | NOT NULL | 学生姓名 |
+| grade | VARCHAR(20) | | 年级 |
+| major | VARCHAR(100) | | 专业 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+### 3. teachers 表
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | UUID | PRIMARY KEY | 教师主键ID |
+| teacher_id | VARCHAR(20) | NOT NULL UNIQUE | 工号 |
+| password | VARCHAR(255) | NOT NULL | 密码 |
+| name | VARCHAR(50) | NOT NULL | 教师姓名 |
+| department | VARCHAR(100) | | 部门 |
+| title | VARCHAR(50) | | 职称 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+### 4. classes 表
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | UUID | PRIMARY KEY | 班级主键ID |
+| class_id | VARCHAR(20) | NOT NULL UNIQUE | 班级ID |
+| class_name | VARCHAR(100) | NOT NULL | 班级名称 |
+| grade | VARCHAR(20) | | 年级 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+### 5. student_class 表（学生与班级的多对多关系）
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | UUID | PRIMARY KEY | 关联ID |
+| student_id | UUID | NOT NULL, FOREIGN KEY | 学生ID |
+| class_id | UUID | NOT NULL, FOREIGN KEY | 班级ID |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| UNIQUE | (student_id, class_id) | | 确保学生和班级的组合唯一 |
+
+### 6. teacher_class 表（教师与班级的多对多关系）
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | UUID | PRIMARY KEY | 关联ID |
+| teacher_id | UUID | NOT NULL, FOREIGN KEY | 教师ID |
+| class_id | UUID | NOT NULL, FOREIGN KEY | 班级ID |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| UNIQUE | (teacher_id, class_id) | | 确保教师和班级的组合唯一 |
 
 ## 常见问题排查
 
