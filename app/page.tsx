@@ -53,7 +53,13 @@ export default function Home() {
       // 登录成功
       setLoading(false);
       alert('登录成功！');
-      // 可以在这里跳转到其他页面
+      // 根据用户类型重定向
+      if (data.user.type === 'student') {
+        window.location.href = '/student';
+      } else if (data.user.type === 'teacher') {
+        // 教师页面可以后续实现
+        window.location.href = '/';
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '登录失败，请重试');
       setLoading(false);
