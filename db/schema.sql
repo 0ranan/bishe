@@ -149,3 +149,117 @@ SELECT s.id, c.id
 FROM students s, classes c
 WHERE c.class_id = 'C2023001'
 ON CONFLICT (student_id, class_id) DO NOTHING;
+
+-- 创建课程表
+CREATE TABLE IF NOT EXISTS courses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_id VARCHAR(20) NOT NULL UNIQUE,
+    course_name VARCHAR(100) NOT NULL,
+    credit FLOAT DEFAULT 3.0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建班级和课程的关联表（多对多关系）
+CREATE TABLE IF NOT EXISTS class_course (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    class_id UUID NOT NULL,
+    course_id UUID NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    UNIQUE (class_id, course_id)
+);
+
+-- 插入初始课程信息
+INSERT INTO courses (course_id, course_name, credit)
+VALUES 
+('C001', 'C语言程序设计', 4.0),
+('C002', '高等数学', 5.0)
+ON CONFLICT (course_id) DO NOTHING;
+
+-- 插入班级与课程的关联
+INSERT INTO class_course (class_id, course_id)
+SELECT c.id, co.id
+FROM classes c, courses co
+WHERE c.class_id = 'C2023001'
+ON CONFLICT (class_id, course_id) DO NOTHING;
+
+-- 创建课程视频表
+CREATE TABLE IF NOT EXISTS course_videos (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_id UUID NOT NULL,
+    video_url TEXT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    duration VARCHAR(20),
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
+-- 为 C语言程序设计 课程添加视频
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'https://example.com/videos/c-language/lesson1.mp4', 
+    'C语言入门', 
+    '45:30', 
+    1
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'https://example.com/videos/c-language/lesson2.mp4', 
+    'C语言基本语法', 
+    '50:15', 
+    2
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'https://example.com/videos/c-language/lesson3.mp4', 
+    'C语言函数', 
+    '48:20', 
+    3
+FROM courses co
+WHERE co.course_id = 'C001'
+ON CONFLICT DO NOTHING;
+
+-- 为 高等数学 课程添加视频
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'https://example.com/videos/math/lesson1.mp4', 
+    '高等数学入门', 
+    '55:40', 
+    1
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'https://example.com/videos/math/lesson2.mp4', 
+    '极限与连续', 
+    '52:10', 
+    2
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_videos (course_id, video_url, title, duration, order_index)
+SELECT 
+    co.id, 
+    'https://example.com/videos/math/lesson3.mp4', 
+    '导数与微分', 
+    '49:30', 
+    3
+FROM courses co
+WHERE co.course_id = 'C002'
+ON CONFLICT DO NOTHING;
