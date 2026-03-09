@@ -36,6 +36,19 @@ export default function TeacherClassDetailPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // 编辑班级信息相关状态
+  const [isEditing, setIsEditing] = useState(false);
+  const [editClassName, setEditClassName] = useState('');
+  const [editGrade, setEditGrade] = useState('');
+  
+  // 添加学生相关状态
+  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [newStudentId, setNewStudentId] = useState('');
+  
+  // 消息提示状态
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   // 检查用户登录状态并获取班级详情
   useEffect(() => {
@@ -74,6 +87,9 @@ export default function TeacherClassDetailPage() {
 
         const classData = await classResponse.json();
         setCls(classData.class);
+        // 初始化编辑表单数据
+        setEditClassName(classData.class.class_name);
+        setEditGrade(classData.class.grade);
 
         // 获取班级学生列表
         const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
@@ -105,6 +121,144 @@ export default function TeacherClassDetailPage() {
   // 返回到班级列表
   const handleBack = () => {
     router.push('/teacher/classes');
+  };
+
+  // 处理编辑班级信息
+  const handleEditClass = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      const response = await fetch(`/api/teacher/classes/${classId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          class_name: editClassName,
+          grade: editGrade,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('更新班级信息失败');
+      }
+
+      const updatedClass = await response.json();
+      setCls(updatedClass.class);
+      setIsEditing(false);
+      setMessage('班级信息更新成功');
+      setMessageType('success');
+      // 3秒后清除消息
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : '更新班级信息失败');
+      setMessageType('error');
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  // 处理添加学生
+  const handleAddStudent = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken || !newStudentId) return;
+
+      const response = await fetch(`/api/teacher/classes/${classId}/students`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          student_id: newStudentId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('添加学生失败');
+      }
+
+      // 重新获取学生列表
+      const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const studentsData = await studentsResponse.json();
+      setStudents(studentsData.students);
+      
+      // 重新获取班级信息以更新学生人数
+      const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const classData = await classResponse.json();
+      setCls(classData.class);
+
+      setNewStudentId('');
+      setShowAddStudent(false);
+      setMessage('学生添加成功');
+      setMessageType('success');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : '添加学生失败');
+      setMessageType('error');
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  // 处理删除学生
+  const handleDeleteStudent = async (studentId: string) => {
+    if (!confirm('确定要删除这个学生吗？')) return;
+
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      const response = await fetch(`/api/teacher/classes/${classId}/students/${studentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('删除学生失败');
+      }
+
+      // 重新获取学生列表
+      const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const studentsData = await studentsResponse.json();
+      setStudents(studentsData.students);
+      
+      // 重新获取班级信息以更新学生人数
+      const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const classData = await classResponse.json();
+      setCls(classData.class);
+
+      setMessage('学生删除成功');
+      setMessageType('success');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : '删除学生失败');
+      setMessageType('error');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   if (loading) {
@@ -179,29 +333,144 @@ export default function TeacherClassDetailPage() {
 
         {/* 内容区域 */}
         <div className="flex-1">
+          {/* 消息提示 */}
+          {message && (
+            <div className={`mb-6 p-4 rounded-md ${messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {message}
+            </div>
+          )}
+
           {/* 班级信息 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">班级详情</h2>
-              <button
-                onClick={handleBack}
-                className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none"
-              >
-                ← 返回班级列表
-              </button>
+              <div className="flex space-x-2">
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleEditClass}
+                      className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+                    >
+                      保存
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditClassName(cls?.class_name || '');
+                        setEditGrade(cls?.grade || '');
+                      }}
+                      className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none"
+                    >
+                      取消
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+                    >
+                      编辑班级信息
+                    </button>
+                    <button
+                      onClick={handleBack}
+                      className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none"
+                    >
+                      ← 返回班级列表
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-gray-600">班级ID: {cls?.class_id}</div>
-              <div className="text-gray-600">班级名称: {cls?.class_name}</div>
-              <div className="text-gray-600">年级: {cls?.grade}</div>
-              <div className="text-gray-600">学生人数: {cls?.student_count}</div>
-            </div>
+
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">班级ID</label>
+                  <input
+                    type="text"
+                    value={cls?.class_id}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">班级名称</label>
+                  <input
+                    type="text"
+                    value={editClassName}
+                    onChange={(e) => setEditClassName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">年级</label>
+                  <input
+                    type="text"
+                    value={editGrade}
+                    onChange={(e) => setEditGrade(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">学生人数</label>
+                  <input
+                    type="text"
+                    value={cls?.student_count}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-gray-600">班级ID: {cls?.class_id}</div>
+                <div className="text-gray-600">班级名称: {cls?.class_name}</div>
+                <div className="text-gray-600">年级: {cls?.grade}</div>
+                <div className="text-gray-600">学生人数: {cls?.student_count}</div>
+              </div>
+            )}
           </div>
 
           {/* 学生列表 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">学生列表</h3>
-            
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">学生列表</h3>
+              <button
+                onClick={() => setShowAddStudent(!showAddStudent)}
+                className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none"
+              >
+                {showAddStudent ? '取消添加' : '添加学生'}
+              </button>
+            </div>
+
+            {/* 添加学生表单 */}
+            {showAddStudent && (
+              <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">添加学生</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">学号</label>
+                    <input
+                      type="text"
+                      value={newStudentId}
+                      onChange={(e) => setNewStudentId(e.target.value)}
+                      placeholder="请输入学生学号"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddStudent}
+                    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+                  >
+                    添加学生
+                  </button>
+                </div>
+              </div>
+            )}
+
             {students.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 暂无学生
@@ -223,6 +492,9 @@ export default function TeacherClassDetailPage() {
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         专业
                       </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        操作
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -239,6 +511,14 @@ export default function TeacherClassDetailPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {student.major}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            onClick={() => handleDeleteStudent(student.student_id)}
+                            className="text-red-600 hover:text-red-800 focus:outline-none"
+                          >
+                            删除
+                          </button>
                         </td>
                       </tr>
                     ))}
