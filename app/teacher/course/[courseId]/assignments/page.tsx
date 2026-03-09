@@ -17,6 +17,20 @@ interface User {
   type: 'student' | 'teacher';
 }
 
+// 定义作业接口
+interface Assignment {
+  id: string;
+  title: string;
+  content: string;
+  start_time: string;
+  end_time: string;
+  teacher_id: string;
+  teacher_name: string;
+  created_at: string;
+  submitted_count: number;
+  total_count: number;
+}
+
 export default function TeacherCourseAssignmentsPage() {
   const params = useParams();
   const router = useRouter();
@@ -24,10 +38,14 @@ export default function TeacherCourseAssignmentsPage() {
   
   const [user, setUser] = useState<User | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newAssignment, setNewAssignment] = useState({ title: '', content: '', end_time: '' });
+  const [createError, setCreateError] = useState('');
 
-  // 获取课程信息
+  // 获取课程信息和作业列表
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
@@ -64,6 +82,18 @@ export default function TeacherCourseAssignmentsPage() {
 
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
+
+        // 获取作业列表
+        const assignmentResponse = await fetch(`/api/teacher/courses/${courseId}/assignments`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (assignmentResponse.ok) {
+          const assignmentData = await assignmentResponse.json();
+          setAssignments(assignmentData.assignments);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取课程详情失败');
       } finally {
@@ -77,6 +107,46 @@ export default function TeacherCourseAssignmentsPage() {
   // 返回到课程列表
   const handleBack = () => {
     router.push('/teacher');
+  };
+
+  // 创建作业
+  const handleCreateAssignment = async () => {
+    if (!newAssignment.title || !newAssignment.content || !newAssignment.end_time) {
+      setCreateError('标题、内容和截止时间不能为空');
+      return;
+    }
+
+    try {
+      // 从本地存储获取 token
+      const accessToken = localStorage.getItem('accessToken');
+
+      if (!accessToken) {
+        router.push('/');
+        return;
+      }
+
+      const response = await fetch(`/api/teacher/courses/${courseId}/assignments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newAssignment),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAssignments([data, ...assignments]);
+        setShowCreateModal(false);
+        setNewAssignment({ title: '', content: '', end_time: '' });
+        setCreateError('');
+      } else {
+        const errorData = await response.json();
+        setCreateError(errorData.error || '创建失败');
+      }
+    } catch (err) {
+      setCreateError('创建失败，请稍后重试');
+    }
   };
 
   if (loading) {
@@ -217,10 +287,109 @@ export default function TeacherCourseAssignmentsPage() {
 
           {/* 作业功能 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">作业管理</h3>
-            <div className="text-center py-12 text-gray-500">
-              课程作业功能开发中...
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">作业管理</h3>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+              >
+                发布作业
+              </button>
             </div>
+
+            {/* 作业列表 */}
+            {assignments.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                暂无作业内容
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {assignments.map((assignment) => (
+                  <div key={assignment.id} className="border border-gray-200 rounded-md p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-lg font-medium text-gray-900">{assignment.title}</h4>
+                      <span className="text-sm text-gray-500">{new Date(assignment.created_at).toLocaleString()}</span>
+                    </div>
+                    <div className="text-gray-600 mb-3">{assignment.content}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">开始时间:</span> {new Date(assignment.start_time).toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">截止时间:</span> {new Date(assignment.end_time).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">发布者: {assignment.teacher_name}</span>
+                      <span className="text-sm text-gray-500">提交情况: {assignment.submitted_count}/{assignment.total_count}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 发布作业模态框 */}
+            {showCreateModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">发布作业</h3>
+                  {createError && (
+                    <div className="bg-red-50 text-red-600 p-2 rounded-md mb-4">
+                      {createError}
+                    </div>
+                  )}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                      <input
+                        type="text"
+                        value={newAssignment.title}
+                        onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="请输入作业标题"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                      <textarea
+                        value={newAssignment.content}
+                        onChange={(e) => setNewAssignment({ ...newAssignment, content: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="请输入作业内容"
+                        rows={4}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">截止时间</label>
+                      <input
+                        type="datetime-local"
+                        value={newAssignment.end_time}
+                        onChange={(e) => setNewAssignment({ ...newAssignment, end_time: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => {
+                          setShowCreateModal(false);
+                          setNewAssignment({ title: '', content: '', end_time: '' });
+                          setCreateError('');
+                        }}
+                        className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none"
+                      >
+                        取消
+                      </button>
+                      <button
+                        onClick={handleCreateAssignment}
+                        className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+                      >
+                        发布
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
