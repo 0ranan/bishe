@@ -97,22 +97,20 @@ export async function POST(request: NextRequest) {
     // 生成课程ID
     const courseId = `CO${Date.now()}`;
 
-    // 开始事务
-    await sql`BEGIN`;
-
-    try {
+    // 使用正确的事务处理方式
+    const newCourse = await sql.begin(async (sql) => {
       // 创建新课程
-      const newCourse = await sql`
+      const course = await sql`
         INSERT INTO courses (course_id, course_name, credit)
         VALUES (${courseId}, ${course_name}, ${credit})
         RETURNING id, course_id, course_name, credit
       `;
 
-      if (newCourse.length === 0) {
+      if (course.length === 0) {
         throw new Error('创建课程失败');
       }
 
-      const courseIdValue = newCourse[0].id;
+      const courseIdValue = course[0].id;
 
       // 获取教师的所有班级
       const teacherClasses = await sql`
@@ -131,20 +129,15 @@ export async function POST(request: NextRequest) {
         `;
       }
 
-      // 提交事务
-      await sql`COMMIT`;
+      return course[0];
+    });
 
-      // 返回成功响应
-      return NextResponse.json({
-        success: true,
-        message: '课程发布成功',
-        course: newCourse[0]
-      });
-    } catch (error) {
-      // 回滚事务
-      await sql`ROLLBACK`;
-      throw error;
-    }
+    // 返回成功响应
+    return NextResponse.json({
+      success: true,
+      message: '课程发布成功',
+      course: newCourse
+    });
   } catch (error) {
     console.error('发布课程失败:', error);
     return NextResponse.json(
