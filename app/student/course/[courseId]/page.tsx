@@ -19,6 +19,17 @@ interface Course {
   credit: number;
 }
 
+// 定义签到接口
+interface Attendance {
+  id: string;
+  title: string;
+  code: string;
+  start_time: string;
+  end_time: string;
+  status: 'active' | 'ended' | 'missed';
+  attended: boolean;
+}
+
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -26,6 +37,7 @@ export default function CourseDetailPage() {
   
   const [course, setCourse] = useState<Course | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [attendances, setAttendances] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -69,6 +81,18 @@ export default function CourseDetailPage() {
 
         const videosData = await videosResponse.json();
         setVideos(videosData.videos);
+
+        // 获取课程签到信息
+        const attendanceResponse = await fetch(`/api/student/courses/${courseId}/attendances`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (attendanceResponse.ok) {
+          const attendanceData = await attendanceResponse.json();
+          setAttendances(attendanceData.attendances);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取课程详情失败');
       } finally {
@@ -177,6 +201,37 @@ export default function CourseDetailPage() {
                 <div className="text-gray-600">学分: {course?.credit}</div>
               </div>
             </div>
+
+            {/* 未签到的签到 */}
+            {attendances.filter(a => a.status === 'active' && !a.attended).length > 0 && (
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">待签到</h3>
+                <div className="space-y-4">
+                  {attendances
+                    .filter(a => a.status === 'active' && !a.attended)
+                    .map((attendance) => (
+                      <div key={attendance.id} className="p-4 border border-yellow-200 bg-yellow-50 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-medium text-gray-900">{attendance.title}</h4>
+                          <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded">进行中</span>
+                        </div>
+                        <div className="mt-2 text-sm text-gray-600">
+                          <div>签到码: <span className="font-medium">{attendance.code}</span></div>
+                          <div>结束时间: {new Date(attendance.end_time).toLocaleString()}</div>
+                        </div>
+                        <div className="mt-3">
+                          <button
+                            onClick={() => router.push(`/student/course/${courseId}/attendance`)}
+                            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+                          >
+                            去签到
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
 
             {/* 视频列表 */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
