@@ -33,47 +33,7 @@ VALUES
 -- 学生9: 学号, 密码, 姓名, 年级, 专业
 ('2023009', 'student123', '郑一', '2023级', '软件工程'),
 -- 学生10: 学号, 密码, 姓名, 年级, 专业
-('2023010', 'student123', '王二', '2023级', '软件工程'),
--- 学生11: 学号, 密码, 姓名, 年级, 专业
-('2023011', 'student123', '陈三', '2023级', '人工智能'),
--- 学生12: 学号, 密码, 姓名, 年级, 专业
-('2023012', 'student123', '林四', '2023级', '人工智能'),
--- 学生13: 学号, 密码, 姓名, 年级, 专业
-('2023013', 'student123', '黄五', '2023级', '人工智能'),
--- 学生14: 学号, 密码, 姓名, 年级, 专业
-('2023014', 'student123', '杨六', '2023级', '人工智能'),
--- 学生15: 学号, 密码, 姓名, 年级, 专业
-('2023015', 'student123', '马七', '2023级', '人工智能'),
--- 学生16: 学号, 密码, 姓名, 年级, 专业
-('2023016', 'student123', '朱八', '2023级', '数据科学与大数据技术'),
--- 学生17: 学号, 密码, 姓名, 年级, 专业
-('2023017', 'student123', '秦九', '2023级', '数据科学与大数据技术'),
--- 学生18: 学号, 密码, 姓名, 年级, 专业
-('2023018', 'student123', '尤十', '2023级', '数据科学与大数据技术'),
--- 学生19: 学号, 密码, 姓名, 年级, 专业
-('2023019', 'student123', '许一', '2023级', '数据科学与大数据技术'),
--- 学生20: 学号, 密码, 姓名, 年级, 专业
-('2023020', 'student123', '何二', '2023级', '数据科学与大数据技术'),
--- 学生21: 学号, 密码, 姓名, 年级, 专业
-('2023021', 'student123', '吕三', '2023级', '网络工程'),
--- 学生22: 学号, 密码, 姓名, 年级, 专业
-('2023022', 'student123', '施四', '2023级', '网络工程'),
--- 学生23: 学号, 密码, 姓名, 年级, 专业
-('2023023', 'student123', '张五', '2023级', '网络工程'),
--- 学生24: 学号, 密码, 姓名, 年级, 专业
-('2023024', 'student123', '孔六', '2023级', '网络工程'),
--- 学生25: 学号, 密码, 姓名, 年级, 专业
-('2023025', 'student123', '曹七', '2023级', '网络工程'),
--- 学生26: 学号, 密码, 姓名, 年级, 专业
-('2023026', 'student123', '严八', '2023级', '物联网工程'),
--- 学生27: 学号, 密码, 姓名, 年级, 专业
-('2023027', 'student123', '华九', '2023级', '物联网工程'),
--- 学生28: 学号, 密码, 姓名, 年级, 专业
-('2023028', 'student123', '金十', '2023级', '物联网工程'),
--- 学生29: 学号, 密码, 姓名, 年级, 专业
-('2023029', 'student123', '魏一', '2023级', '物联网工程'),
--- 学生30: 学号, 密码, 姓名, 年级, 专业
-('2023030', 'student123', '陶二', '2023级', '物联网工程')
+('2023010', 'student123', '王二', '2023级', '软件工程')
 ON CONFLICT (student_id) DO NOTHING;
 
 -- 插入教师与班级的关联
@@ -406,7 +366,7 @@ SELECT
     co.id, 
     s.id
 FROM course_attendance ca, courses co, students s
-WHERE ca.title = '第二次课堂签到' AND co.course_id = 'C001' AND s.student_id IN ('2023001', '2023002', '2023003', '2023004', '2023005', '2023011', '2023012', '2023013', '2023014', '2023015')
+WHERE ca.title = '第二次课堂签到' AND co.course_id = 'C001' AND s.student_id IN ('2023001', '2023002', '2023003', '2023004', '2023005')
 ON CONFLICT DO NOTHING;
 
 -- 高等数学 第一次签到
@@ -416,7 +376,7 @@ SELECT
     co.id, 
     s.id
 FROM course_attendance ca, courses co, students s
-WHERE ca.title = '高等数学第一次签到' AND co.course_id = 'C002' AND s.student_id IN ('2023001', '2023002', '2023003', '2023004', '2023005', '2023006', '2023007', '2023008', '2023009', '2023010', '2023011', '2023012', '2023013', '2023014', '2023015')
+WHERE ca.title = '高等数学第一次签到' AND co.course_id = 'C002' AND s.student_id IN ('2023001', '2023002', '2023003', '2023004', '2023005', '2023006', '2023007', '2023008', '2023009', '2023010')
 ON CONFLICT DO NOTHING;
 
 -- ==================== 插入课程讨论数据 ====================
@@ -563,4 +523,327 @@ SELECT
     '已提交'
 FROM assignment_topics at, students s
 WHERE at.title = '极限与连续作业' AND s.student_id = '2023001'
+ON CONFLICT DO NOTHING;
+
+-- ==================== 插入更多课程签到数据 ====================
+
+-- 为 C语言程序设计 课程添加更多签到活动
+INSERT INTO course_attendance (course_id, teacher_id, title, code, start_time, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '第三次课堂签到', 
+    'C001-003', 
+    CURRENT_TIMESTAMP - INTERVAL '3 days', 
+    CURRENT_TIMESTAMP - INTERVAL '2 days 23 hours'
+FROM courses co, teachers t
+WHERE co.course_id = 'C001' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_attendance (course_id, teacher_id, title, code, start_time, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '第四次课堂签到', 
+    'C001-004', 
+    CURRENT_TIMESTAMP - INTERVAL '1 day', 
+    CURRENT_TIMESTAMP + INTERVAL '1 hour'
+FROM courses co, teachers t
+WHERE co.course_id = 'C001' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+-- 为 高等数学 课程添加更多签到活动
+INSERT INTO course_attendance (course_id, teacher_id, title, code, start_time, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '高等数学第二次签到', 
+    'C002-002', 
+    CURRENT_TIMESTAMP - INTERVAL '4 days', 
+    CURRENT_TIMESTAMP - INTERVAL '3 days 23 hours'
+FROM courses co, teachers t
+WHERE co.course_id = 'C002' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO course_attendance (course_id, teacher_id, title, code, start_time, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '高等数学第三次签到', 
+    'C002-003', 
+    CURRENT_TIMESTAMP - INTERVAL '2 days', 
+    CURRENT_TIMESTAMP - INTERVAL '1 day 23 hours'
+FROM courses co, teachers t
+WHERE co.course_id = 'C002' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+-- 为新的签到活动添加学生签到记录
+-- C语言程序设计 第三次签到
+INSERT INTO attendance_records (attendance_id, course_id, student_id)
+SELECT 
+    ca.id, 
+    co.id, 
+    s.id
+FROM course_attendance ca, courses co, students s
+WHERE ca.title = '第三次课堂签到' AND co.course_id = 'C001' AND s.student_id IN ('2023001', '2023002', '2023003', '2023006', '2023007', '2023008')
+ON CONFLICT DO NOTHING;
+
+-- C语言程序设计 第四次签到
+INSERT INTO attendance_records (attendance_id, course_id, student_id)
+SELECT 
+    ca.id, 
+    co.id, 
+    s.id
+FROM course_attendance ca, courses co, students s
+WHERE ca.title = '第四次课堂签到' AND co.course_id = 'C001' AND s.student_id IN ('2023001', '2023002', '2023003', '2023004', '2023005', '2023006', '2023007', '2023008', '2023009', '2023010')
+ON CONFLICT DO NOTHING;
+
+-- 高等数学 第二次签到
+INSERT INTO attendance_records (attendance_id, course_id, student_id)
+SELECT 
+    ca.id, 
+    co.id, 
+    s.id
+FROM course_attendance ca, courses co, students s
+WHERE ca.title = '高等数学第二次签到' AND co.course_id = 'C002' AND s.student_id IN ('2023001', '2023002', '2023003', '2023004', '2023005', '2023006', '2023007')
+ON CONFLICT DO NOTHING;
+
+-- 高等数学 第三次签到
+INSERT INTO attendance_records (attendance_id, course_id, student_id)
+SELECT 
+    ca.id, 
+    co.id, 
+    s.id
+FROM course_attendance ca, courses co, students s
+WHERE ca.title = '高等数学第三次签到' AND co.course_id = 'C002' AND s.student_id IN ('2023001', '2023002', '2023003', '2023008', '2023009', '2023010')
+ON CONFLICT DO NOTHING;
+
+-- ==================== 插入更多课程讨论数据 ====================
+
+-- 为 C语言程序设计 课程添加更多讨论话题
+INSERT INTO discussion_topics (course_id, teacher_id, title, content)
+SELECT 
+    co.id, 
+    t.id, 
+    '数组与指针的关系', 
+    '请大家讨论数组与指针之间的关系，以及它们在C语言中的应用场景。'
+FROM courses co, teachers t
+WHERE co.course_id = 'C001' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO discussion_topics (course_id, teacher_id, title, content)
+SELECT 
+    co.id, 
+    t.id, 
+    '函数的递归调用', 
+    '什么是递归？递归在C语言中有哪些应用？使用递归时需要注意什么问题？'
+FROM courses co, teachers t
+WHERE co.course_id = 'C001' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+-- 为 高等数学 课程添加更多讨论话题
+INSERT INTO discussion_topics (course_id, teacher_id, title, content)
+SELECT 
+    co.id, 
+    t.id, 
+    '导数的实际应用', 
+    '导数在实际生活中有哪些应用？请举例说明。'
+FROM courses co, teachers t
+WHERE co.course_id = 'C002' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO discussion_topics (course_id, teacher_id, title, content)
+SELECT 
+    co.id, 
+    t.id, 
+    '定积分的几何意义', 
+    '定积分的几何意义是什么？如何利用定积分解决实际问题？'
+FROM courses co, teachers t
+WHERE co.course_id = 'C002' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+-- 为新的讨论话题添加评论
+-- 数组与指针的关系 评论
+INSERT INTO topic_comments (topic_id, student_id, content)
+SELECT 
+    dt.id, 
+    s.id, 
+    '数组名本质上是一个指向数组首元素的指针，这是它们之间的基本关系。'
+FROM discussion_topics dt, students s
+WHERE dt.title = '数组与指针的关系' AND s.student_id = '2023001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO topic_comments (topic_id, student_id, content)
+SELECT 
+    dt.id, 
+    s.id, 
+    '指针可以指向数组中的任意元素，而数组名只能指向首元素，这是它们的区别。'
+FROM discussion_topics dt, students s
+WHERE dt.title = '数组与指针的关系' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+-- 函数的递归调用 评论
+INSERT INTO topic_comments (topic_id, student_id, content)
+SELECT 
+    dt.id, 
+    s.id, 
+    '递归就是函数自己调用自己，常用于解决分治问题，比如斐波那契数列。'
+FROM discussion_topics dt, students s
+WHERE dt.title = '函数的递归调用' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+-- 导数的实际应用 评论
+INSERT INTO topic_comments (topic_id, student_id, content)
+SELECT 
+    dt.id, 
+    s.id, 
+    '导数可以用来求函数的极值，在优化问题中有广泛应用。'
+FROM discussion_topics dt, students s
+WHERE dt.title = '导数的实际应用' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+-- 定积分的几何意义 评论
+INSERT INTO topic_comments (topic_id, student_id, content)
+SELECT 
+    dt.id, 
+    s.id, 
+    '定积分的几何意义是曲线下的面积，可以用来计算不规则图形的面积。'
+FROM discussion_topics dt, students s
+WHERE dt.title = '定积分的几何意义' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+-- ==================== 插入更多课程作业数据 ====================
+
+-- 为 C语言程序设计 课程添加更多作业主题
+INSERT INTO assignment_topics (course_id, teacher_id, title, content, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '数组与字符串作业', 
+    '请编写一个程序，实现以下功能：1. 输入一个字符串；2. 统计字符串中各字符出现的次数；3. 按出现次数从多到少排序并输出。', 
+    CURRENT_TIMESTAMP + INTERVAL '10 days'
+FROM courses co, teachers t
+WHERE co.course_id = 'C001' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignment_topics (course_id, teacher_id, title, content, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '结构体与共用体作业', 
+    '请定义一个学生结构体，包含学号、姓名、年龄、成绩等信息，编写程序实现学生信息的输入、输出和排序功能。', 
+    CURRENT_TIMESTAMP + INTERVAL '15 days'
+FROM courses co, teachers t
+WHERE co.course_id = 'C001' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+-- 为 高等数学 课程添加更多作业主题
+INSERT INTO assignment_topics (course_id, teacher_id, title, content, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '导数与微分作业', 
+    '完成课本第2章习题，包括导数的计算、微分的应用等问题。', 
+    CURRENT_TIMESTAMP + INTERVAL '10 days'
+FROM courses co, teachers t
+WHERE co.course_id = 'C002' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignment_topics (course_id, teacher_id, title, content, end_time)
+SELECT 
+    co.id, 
+    t.id, 
+    '不定积分作业', 
+    '完成课本第3章习题，包括不定积分的计算、换元法、分部积分法等问题。', 
+    CURRENT_TIMESTAMP + INTERVAL '15 days'
+FROM courses co, teachers t
+WHERE co.course_id = 'C002' AND t.teacher_id = 'T001'
+ON CONFLICT DO NOTHING;
+
+-- 为新的作业主题添加学生提交的作业
+-- 数组与字符串作业 提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023001'
+ON CONFLICT DO NOTHING;
+
+-- 结构体与共用体作业 提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023001'
+ON CONFLICT DO NOTHING;
+
+-- 导数与微分作业 提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '已完成课本第2章习题，包括导数的计算、微分的应用等问题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023001'
+ON CONFLICT DO NOTHING;
+
+-- 不定积分作业 提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '已完成课本第3章习题，包括不定积分的计算、换元法、分部积分法等问题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023001'
+ON CONFLICT DO NOTHING;
+
+-- 为其他学生添加作业提交
+-- 为学生2023002添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了要求的所有功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023003添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：完成了所有要求的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023003'
 ON CONFLICT DO NOTHING;

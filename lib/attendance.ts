@@ -43,7 +43,18 @@ export async function getTeacherCourseAttendances(courseId: string, teacherId: s
       throw new Error('数据库连接失败，请检查数据库服务是否运行');
     }
 
-    // 首先获取该课程的UUID，并验证教师是否有权限
+    // 首先检查课程是否存在
+    const courseExistsResult = await sql`
+      SELECT id 
+      FROM courses 
+      WHERE course_id = ${courseId}
+    `;
+
+    if (courseExistsResult.length === 0) {
+      throw new Error('课程不存在');
+    }
+
+    // 然后验证教师是否有权限访问该课程
     const courseResult = await sql`
       SELECT c.id 
       FROM courses c
@@ -54,7 +65,7 @@ export async function getTeacherCourseAttendances(courseId: string, teacherId: s
     `;
 
     if (courseResult.length === 0) {
-      throw new Error('课程不存在或您无权访问');
+      throw new Error('您无权访问该课程');
     }
 
     const courseUuid = courseResult[0].id;
@@ -133,15 +144,29 @@ export async function createAttendance(courseId: string, title: string, duration
       throw new Error('数据库连接失败，请检查数据库服务是否运行');
     }
 
-    // 首先获取该课程的UUID
-    const courseResult = await sql`
+    // 首先检查课程是否存在
+    const courseExistsResult = await sql`
       SELECT id 
       FROM courses 
       WHERE course_id = ${courseId}
     `;
 
-    if (courseResult.length === 0) {
+    if (courseExistsResult.length === 0) {
       throw new Error('课程不存在');
+    }
+
+    // 然后验证教师是否有权限访问该课程
+    const courseResult = await sql`
+      SELECT c.id 
+      FROM courses c
+      JOIN class_course cc ON c.id = cc.course_id
+      JOIN classes cl ON cc.class_id = cl.id
+      JOIN teacher_class tc ON cl.id = tc.class_id
+      WHERE c.course_id = ${courseId} AND tc.teacher_id = ${teacherId}
+    `;
+
+    if (courseResult.length === 0) {
+      throw new Error('您无权访问该课程');
     }
 
     const courseUuid = courseResult[0].id;

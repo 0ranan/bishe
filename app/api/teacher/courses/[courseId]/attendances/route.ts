@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
     return response;
   } catch (error) {
     console.error('获取签到记录失败:', error);
-    return NextResponse.json({ error: '获取签到记录失败' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : '获取签到记录失败' }, { status: 500 });
   }
 }
 
@@ -52,6 +52,6 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     return response;
   } catch (error) {
     console.error('创建签到失败:', error);
-    return NextResponse.json({ error: '创建签到失败' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : '创建签到失败' }, { status: 500 });
   }
 }
