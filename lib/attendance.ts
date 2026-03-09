@@ -1,4 +1,4 @@
-import { sql } from './database';
+import { sql } from '@/db/client';
 
 // 定义签到接口
 export interface Attendance {
@@ -11,6 +11,17 @@ export interface Attendance {
   status: 'active' | 'ended';
   total_students: number;
   attended_students: number;
+}
+
+// 检查数据库连接状态
+async function checkDatabaseConnection() {
+  try {
+    await sql`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error('数据库连接失败:', error);
+    return false;
+  }
 }
 
 // 生成随机签到码
@@ -26,6 +37,12 @@ function generateAttendanceCode(): string {
 // 获取教师课程的签到记录
 export async function getTeacherCourseAttendances(courseId: string): Promise<Attendance[]> {
   try {
+    // 检查数据库连接
+    const isConnected = await checkDatabaseConnection();
+    if (!isConnected) {
+      throw new Error('数据库连接失败，请检查数据库服务是否运行');
+    }
+
     // 首先获取该课程的UUID
     const courseResult = await sql`
       SELECT id 
@@ -54,7 +71,7 @@ export async function getTeacherCourseAttendances(courseId: string): Promise<Att
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id IN (${sql(classIds)})
+        WHERE class_id IN ${sql(classIds)}
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
@@ -91,7 +108,7 @@ export async function getTeacherCourseAttendances(courseId: string): Promise<Att
           start_time: row.start_time.toISOString(),
           end_time: row.end_time.toISOString(),
           status: new Date() < new Date(row.end_time) ? 'active' : 'ended',
-          total_students,
+          total_students: totalStudents,
           attended_students: attendedResult[0]?.count || 0
         };
       })
@@ -107,6 +124,12 @@ export async function getTeacherCourseAttendances(courseId: string): Promise<Att
 // 创建新的签到
 export async function createAttendance(courseId: string, title: string, duration: number): Promise<Attendance> {
   try {
+    // 检查数据库连接
+    const isConnected = await checkDatabaseConnection();
+    if (!isConnected) {
+      throw new Error('数据库连接失败，请检查数据库服务是否运行');
+    }
+
     // 首先获取该课程的UUID
     const courseResult = await sql`
       SELECT id 
@@ -149,7 +172,7 @@ export async function createAttendance(courseId: string, title: string, duration
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id IN (${sql(classIds)})
+        WHERE class_id IN ${sql(classIds)}
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
@@ -202,6 +225,12 @@ export async function createAttendance(courseId: string, title: string, duration
 // 结束签到
 export async function endAttendance(attendanceId: string): Promise<Attendance> {
   try {
+    // 检查数据库连接
+    const isConnected = await checkDatabaseConnection();
+    if (!isConnected) {
+      throw new Error('数据库连接失败，请检查数据库服务是否运行');
+    }
+
     // 获取签到记录
     const attendanceResult = await sql`
       SELECT 
@@ -249,7 +278,7 @@ export async function endAttendance(attendanceId: string): Promise<Attendance> {
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id IN (${sql(classIds)})
+        WHERE class_id IN ${sql(classIds)}
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }

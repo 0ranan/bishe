@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { endAttendance } from '@/lib/attendance';
-import { verifyToken } from '@/lib/auth';
+import { withAuth } from '@/lib/middleware';
 
 export async function PUT(request: NextRequest, { params }: { params: { courseId: string; attendanceId: string } }) {
   try {
     // 验证 token
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return NextResponse.json({ error: '未提供认证令牌' }, { status: 401 });
-    }
+    const decoded = withAuth(request, 'teacher');
+    if (decoded instanceof NextResponse) return decoded;
 
-    const decoded = verifyToken(token);
-    if (!decoded || decoded.type !== 'teacher') {
-      return NextResponse.json({ error: '无效的认证令牌' }, { status: 401 });
-    }
-
-    const { courseId, attendanceId } = params;
+    // 在 Next.js 15 中，params 需要 await
+    const { courseId, attendanceId } = await params;
     const attendance = await endAttendance(attendanceId);
 
     return NextResponse.json({ attendance }, { status: 200 });

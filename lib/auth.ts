@@ -79,7 +79,7 @@ export function verifyRefreshToken(token: string): UserPayload | null {
  * @param authorization Authorization 头字符串
  * @returns token 字符串或 null
  */
-export function extractTokenFromHeader(authorization: string | undefined): string | null {
+export function extractTokenFromHeader(authorization: string | null): string | null {
   if (!authorization) return null;
   
   // 检查是否是 Bearer token
