@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
     const authResult = await withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
-    const { courseId } = params;
+    const { courseId } = await params;
     const { decoded } = authResult;
     const studentId = decoded.id;
 
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     const authResult = await withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
-    const { courseId } = params;
+    const { courseId } = await params;
     const { decoded } = authResult;
     const studentId = decoded.id;
 
@@ -115,11 +115,13 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
       return NextResponse.json({ error: '缺少签到码' }, { status: 400 });
     }
 
-    // 查找有效的签到记录
+    // 查找有效的签到记录（使用 UTC 时间）
+    const nowDate = new Date();
+    const currentTime = new Date(Date.UTC(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate(), nowDate.getHours(), nowDate.getMinutes(), nowDate.getSeconds()));
     const attendanceResult = await sql`
       SELECT id, course_id 
       FROM course_attendance 
-      WHERE code = ${code} AND end_time > ${new Date()}
+      WHERE code = ${code} AND end_time > ${currentTime}
     `;
 
     if (attendanceResult.length === 0) {
@@ -139,10 +141,12 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
       return NextResponse.json({ error: '您已经签到过了' }, { status: 400 });
     }
 
-    // 创建签到记录
+    // 创建签到记录（使用 UTC 时间）
+    const now = new Date();
+    const attendanceTime = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()));
     await sql`
-      INSERT INTO attendance_records (attendance_id, student_id, created_at) 
-      VALUES (${attendance.id}, ${studentId}, ${new Date()})
+      INSERT INTO attendance_records (attendance_id, course_id, student_id, check_in_time) 
+      VALUES (${attendance.id}, ${attendance.course_id}, ${studentId}, ${attendanceTime})
     `;
 
     return NextResponse.json({ success: true, message: '签到成功' }, { status: 200 });

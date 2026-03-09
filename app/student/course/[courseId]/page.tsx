@@ -217,7 +217,7 @@ export default function CourseDetailPage() {
                         </div>
                         <div className="mt-2 text-sm text-gray-600">
                           <div>签到码: <span className="font-medium">{attendance.code}</span></div>
-                          <div>结束时间: {new Date(attendance.end_time).toLocaleString()}</div>
+                          <div>结束时间: {new Date(attendance.end_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
                         </div>
                         <div className="mt-3">
                           <button

@@ -169,8 +169,9 @@ export async function createAttendance(courseId: string, title: string, duration
     // 生成签到码
     const code = generateAttendanceCode();
 
-    // 计算开始和结束时间
-    const startTime = new Date();
+    // 计算开始和结束时间（使用 UTC 时间）
+    const now = new Date();
+    const startTime = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()));
     const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
     // 创建签到记录
@@ -279,10 +280,12 @@ export async function endAttendance(attendanceId: string, teacherId: string): Pr
       WHERE attendance_id = ${attendanceId}
     `;
 
-    // 更新结束时间为当前时间
+    // 更新结束时间为当前时间（使用 UTC 时间）
+    const now = new Date();
+    const currentTime = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()));
     await sql`
       UPDATE course_attendance 
-      SET end_time = ${new Date()} 
+      SET end_time = ${currentTime} 
       WHERE id = ${attendanceId}
     `;
 
@@ -292,7 +295,7 @@ export async function endAttendance(attendanceId: string, teacherId: string): Pr
       title: attendance.title,
       code: attendance.code,
       start_time: attendance.start_time.toISOString(),
-      end_time: new Date().toISOString(),
+      end_time: currentTime.toISOString(),
       status: 'ended',
       total_students: totalStudents,
       attended_students: attendedResult[0]?.count || 0

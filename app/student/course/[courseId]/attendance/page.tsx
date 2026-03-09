@@ -279,8 +279,8 @@ export default function AttendancePage() {
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
                         <div>签到码: <span className="font-medium">{attendance.code}</span></div>
-                        <div>开始时间: {new Date(attendance.start_time).toLocaleString()}</div>
-                        <div>结束时间: {new Date(attendance.end_time).toLocaleString()}</div>
+                        <div>开始时间: {new Date(attendance.start_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
+                        <div>结束时间: {new Date(attendance.end_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
                         <div>签到状态: <span className={`font-medium ${attendance.attended ? 'text-green-600' : 'text-red-600'}`}>
                           {attendance.attended ? '已签到' : '未签到'}
                         </span></div>

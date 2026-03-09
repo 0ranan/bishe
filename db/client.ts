@@ -13,10 +13,10 @@ const sql = postgres(DATABASE_URL, {
   max: 10, // 最大连接数
   idle_timeout: 60, // 空闲连接超时时间（秒）
   types: {
-    // 将日期类型转换为字符串
-    date: (value) => value?.toISOString() || null,
-    timestamp: (value) => value?.toISOString() || null,
-    timestamptz: (value) => value?.toISOString() || null
+    // 保持日期类型为 Date 对象，避免时区转换问题
+    date: (value) => value || null,
+    timestamp: (value) => value || null,
+    timestamptz: (value) => value || null
   }
 });
 
