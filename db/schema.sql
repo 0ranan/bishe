@@ -1,5 +1,8 @@
 -- 本数据库一律使用UUID作为主键
 
+-- 启用UUID扩展
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- 创建 todos 表
 CREATE TABLE IF NOT EXISTS todos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -461,4 +464,105 @@ CREATE TABLE IF NOT EXISTS video_play_duration (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (video_id) REFERENCES course_videos(id) ON DELETE CASCADE
+);
+
+-- 创建课程签到表
+CREATE TABLE IF NOT EXISTS course_attendance (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_id UUID NOT NULL,
+    teacher_id UUID NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+);
+
+-- 创建课程签到记录表
+CREATE TABLE IF NOT EXISTS attendance_records (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    attendance_id UUID NOT NULL,
+    course_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT '已签到',
+    FOREIGN KEY (attendance_id) REFERENCES course_attendance(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    UNIQUE (attendance_id, student_id)
+);
+
+-- 创建课程资源表
+CREATE TABLE IF NOT EXISTS course_resources (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_id UUID NOT NULL,
+    teacher_id UUID NOT NULL,
+    resource_url TEXT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    resource_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+);
+
+-- 创建课程资源下载记录表
+CREATE TABLE IF NOT EXISTS resource_downloads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    resource_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    download_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (resource_id) REFERENCES course_resources(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- 创建课程讨论话题表
+CREATE TABLE IF NOT EXISTS discussion_topics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_id UUID NOT NULL,
+    teacher_id UUID NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+);
+
+-- 创建课题话题评论表
+CREATE TABLE IF NOT EXISTS topic_comments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    topic_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (topic_id) REFERENCES discussion_topics(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- 创建课程作业主题表
+CREATE TABLE IF NOT EXISTS assignment_topics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_id UUID NOT NULL,
+    teacher_id UUID NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+);
+
+-- 创建课程作业表
+CREATE TABLE IF NOT EXISTS assignments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    assignment_topic_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    content TEXT NOT NULL,
+    submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    score FLOAT,
+    status VARCHAR(20) DEFAULT '已提交',
+    FOREIGN KEY (assignment_topic_id) REFERENCES assignment_topics(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
