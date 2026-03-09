@@ -536,7 +536,7 @@ INSERT INTO assignments (assignment_topic_id, student_id, content, score, status
 SELECT 
     at.id, 
     s.id, 
-    '#include <stdio.h>\n\nint main() {\n    int arr[10];\n    int sum = 0;\n    int max, min;\n    \n    printf("请输入10个整数：\n");\n    for (int i = 0; i < 10; i++) {\n        scanf("%d", &arr[i]);\n        sum += arr[i];\n    }\n    \n    max = min = arr[0];\n    for (int i = 1; i < 10; i++) {\n        if (arr[i] > max) max = arr[i];\n        if (arr[i] < min) min = arr[i];\n    }\n    \n    // 排序\n    for (int i = 0; i < 9; i++) {\n        for (int j = 0; j < 9 - i; j++) {\n            if (arr[j] < arr[j+1]) {\n                int temp = arr[j];\n                arr[j] = arr[j+1];\n                arr[j+1] = temp;\n            }\n        }\n    }\n    \n    printf("平均值：%.2f\n", (float)sum / 10);\n    printf("最大值：%d\n", max);\n    printf("最小值：%d\n", min);\n    printf("排序后：");\n    for (int i = 0; i < 10; i++) {\n        printf("%d ", arr[i]);\n    }\n    printf("\n");\n    \n    return 0;\n}', 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
     95.0, 
     '已批改'
 FROM assignment_topics at, students s
@@ -548,7 +548,7 @@ INSERT INTO assignments (assignment_topic_id, student_id, content, status)
 SELECT 
     at.id, 
     s.id, 
-    '#include <stdio.h>\n\n// 交换两个变量的值\nvoid swap(int *a, int *b) {\n    int temp = *a;\n    *a = *b;\n    *b = temp;\n}\n\n// 计算字符串的长度\nint strLength(char *str) {\n    int length = 0;\n    while (*str != '\\0') {\n        length++;\n        str++;\n    }\n    return length;\n}\n\n// 反转字符串\nvoid reverseString(char *str) {\n    int length = strLength(str);\n    for (int i = 0; i < length / 2; i++) {\n        swap(&str[i], &str[length - 1 - i]);\n    }\n}\n\nint main() {\n    int a = 10, b = 20;\n    char str[] = "Hello, World!";\n    \n    printf("交换前：a=%d, b=%d\n", a, b);\n    swap(&a, &b);\n    printf("交换后：a=%d, b=%d\n", a, b);\n    \n    printf("字符串长度：%d\n", strLength(str));\n    \n    printf("反转前：%s\n", str);\n    reverseString(str);\n    printf("反转后：%s\n", str);\n    \n    return 0;\n}', 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
     '已提交'
 FROM assignment_topics at, students s
 WHERE at.title = '指针与函数作业' AND s.student_id = '2023001'
@@ -559,7 +559,7 @@ INSERT INTO assignments (assignment_topic_id, student_id, content, status)
 SELECT 
     at.id, 
     s.id, 
-    '已完成课本第1章习题，包括：\n1. 极限的计算方法\n2. 连续性的判断\n3. 无穷小量的性质\n4. 两个重要极限的应用', 
+    '已完成课本第1章习题，包括：1. 极限的计算方法 2. 连续性的判断 3. 无穷小量的性质 4. 两个重要极限的应用', 
     '已提交'
 FROM assignment_topics at, students s
 WHERE at.title = '极限与连续作业' AND s.student_id = '2023001'
