@@ -827,6 +827,56 @@ FROM assignment_topics at, students s
 WHERE at.title = '指针与函数作业' AND s.student_id = '2023002'
 ON CONFLICT DO NOTHING;
 
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023002'
+ON CONFLICT DO NOTHING;
+
 -- 为学生2023003添加作业提交
 INSERT INTO assignments (assignment_topic_id, student_id, content, status)
 SELECT 
@@ -842,8 +892,555 @@ INSERT INTO assignments (assignment_topic_id, student_id, content, status)
 SELECT 
     at.id, 
     s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
     '极限与连续作业：完成了课本第1章的所有习题。', 
     '已提交'
 FROM assignment_topics at, students s
 WHERE at.title = '极限与连续作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023003'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023004添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023004'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023005添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023005'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023006添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023006'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023007添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023007'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023008添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023008'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023009添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023009'
+ON CONFLICT DO NOTHING;
+
+-- 为学生2023010添加作业提交
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    'C语言基础编程作业：实现了输入10个整数，计算平均值，找出最大值和最小值，并按从大到小排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = 'C语言基础编程作业' AND s.student_id = '2023010'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '指针与函数作业：实现了交换变量值、计算字符串长度、反转字符串的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '指针与函数作业' AND s.student_id = '2023010'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '数组与字符串作业：实现了字符串输入、字符统计、按次数排序输出的功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '数组与字符串作业' AND s.student_id = '2023010'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '结构体与共用体作业：定义了学生结构体，实现了信息的输入、输出和排序功能。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '结构体与共用体作业' AND s.student_id = '2023010'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '极限与连续作业：完成了课本第1章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '极限与连续作业' AND s.student_id = '2023010'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '导数与微分作业：完成了课本第2章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '导数与微分作业' AND s.student_id = '2023010'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO assignments (assignment_topic_id, student_id, content, status)
+SELECT 
+    at.id, 
+    s.id, 
+    '不定积分作业：完成了课本第3章的所有习题。', 
+    '已提交'
+FROM assignment_topics at, students s
+WHERE at.title = '不定积分作业' AND s.student_id = '2023010'
 ON CONFLICT DO NOTHING;
