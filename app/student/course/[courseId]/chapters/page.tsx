@@ -19,7 +19,7 @@ interface Course {
   credit: number;
 }
 
-export default function CourseDetailPage() {
+export default function ChaptersPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
@@ -81,7 +81,7 @@ export default function CourseDetailPage() {
 
   // 返回到课程列表
   const handleBack = () => {
-    router.push('/student');
+    router.push(`/student/course/${courseId}`);
   };
 
   if (loading) {
@@ -111,9 +111,9 @@ export default function CourseDetailPage() {
                 onClick={handleBack}
                 className="text-gray-600 hover:text-gray-900 focus:outline-none"
               >
-                ← 返回课程列表
+                ← 返回课程详情
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">课程详情</h1>
+              <h1 className="text-xl font-semibold text-gray-900">课程章节</h1>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function CourseDetailPage() {
                 </button>
                 <button 
                   onClick={() => router.push(`/student/course/${courseId}/chapters`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
+                  className="w-full text-left p-3 rounded-md bg-blue-50 text-blue-600 font-medium"
                 >
                   课程章节
                 </button>
