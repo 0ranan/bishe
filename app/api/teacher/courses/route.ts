@@ -85,11 +85,18 @@ export async function POST(request: NextRequest) {
 
     // 解析请求体
     const body = await request.json();
-    const { course_name, credit } = body;
+    const { course_name, credit, class_ids } = body;
 
     if (!course_name || !credit) {
       return NextResponse.json(
         { error: '课程名称和学分不能为空' },
+        { status: 400 }
+      );
+    }
+
+    if (!class_ids || class_ids.length === 0) {
+      return NextResponse.json(
+        { error: '请至少选择一个班级' },
         { status: 400 }
       );
     }
@@ -114,18 +121,27 @@ export async function POST(request: NextRequest) {
 
       // 获取教师的所有班级
       const teacherClasses = await sql`
-        SELECT c.id
+        SELECT c.id, c.class_id
         FROM teachers t
         JOIN teacher_class tc ON t.id = tc.teacher_id
         JOIN classes c ON tc.class_id = c.id
         WHERE t.teacher_id = ${user.userId}
       `;
 
-      // 将新课程关联到教师的所有班级
-      for (const cls of teacherClasses) {
+      // 过滤出用户选择的班级
+      const selectedClassIds = teacherClasses
+        .filter((cls: any) => class_ids.includes(cls.class_id))
+        .map((cls: any) => cls.id);
+
+      if (selectedClassIds.length === 0) {
+        throw new Error('未找到有效的班级');
+      }
+
+      // 将新课程关联到选择的班级
+      for (const classId of selectedClassIds) {
         await sql`
           INSERT INTO class_course (class_id, course_id)
-          VALUES (${cls.id}, ${courseIdValue})
+          VALUES (${classId}, ${courseIdValue})
         `;
       }
 

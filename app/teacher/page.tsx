@@ -28,12 +28,14 @@ export default function TeacherPage() {
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [newCourseName, setNewCourseName] = useState('');
   const [newCourseCredit, setNewCourseCredit] = useState(3);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [classes, setClasses] = useState<{class_id: string, class_name: string, grade: string}[]>([]);
   
   // 消息提示状态
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
-  // 检查用户登录状态并获取课程
+  // 检查用户登录状态并获取课程和班级
   useEffect(() => {
     const checkLoginAndGetCourses = async () => {
       try {
@@ -70,6 +72,22 @@ export default function TeacherPage() {
 
         const data = await response.json();
         setCourses(data.courses);
+
+        // 获取教师的班级
+        const classesResponse = await fetch('/api/teacher/classes', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!classesResponse.ok) {
+          throw new Error('获取班级失败');
+        }
+
+        const classesData = await classesResponse.json();
+        setClasses(classesData.classes);
+        // 默认选择所有班级
+        setSelectedClasses(classesData.classes.map((cls: any) => cls.class_id));
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取课程失败');
         // 登录过期或出错，重定向到登录页面
@@ -109,6 +127,7 @@ export default function TeacherPage() {
         body: JSON.stringify({
           course_name: newCourseName,
           credit: newCourseCredit,
+          class_ids: selectedClasses,
         }),
       });
 
@@ -128,6 +147,7 @@ export default function TeacherPage() {
 
       setNewCourseName('');
       setNewCourseCredit(3);
+      setSelectedClasses(classes.map(cls => cls.class_id));
       setShowAddCourse(false);
       setMessage('课程发布成功');
       setMessageType('success');
@@ -138,6 +158,17 @@ export default function TeacherPage() {
       setMessageType('error');
       setTimeout(() => setMessage(''), 3000);
     }
+  };
+
+  // 处理班级选择变化
+  const handleClassChange = (classId: string) => {
+    setSelectedClasses(prev => {
+      if (prev.includes(classId)) {
+        return prev.filter(id => id !== classId);
+      } else {
+        return [...prev, classId];
+      }
+    });
   };
 
   if (loading) {
@@ -251,6 +282,25 @@ export default function TeacherPage() {
                       max="6"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">选择班级</label>
+                    <div className="space-y-2">
+                      {classes.map((cls) => (
+                        <div key={cls.class_id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`class-${cls.class_id}`}
+                            checked={selectedClasses.includes(cls.class_id)}
+                            onChange={() => handleClassChange(cls.class_id)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label htmlFor={`class-${cls.class_id}`} className="ml-2 block text-sm text-gray-700">
+                            {cls.class_name} ({cls.grade})
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <button
                     onClick={handleAddCourse}

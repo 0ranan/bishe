@@ -19,6 +19,14 @@ interface Course {
   credit: number;
 }
 
+// 定义班级接口
+interface Class {
+  class_id: string;
+  class_name: string;
+  grade: string;
+  is_connected: boolean;
+}
+
 // 定义用户接口
 interface User {
   id: string;
@@ -34,10 +42,15 @@ export default function TeacherCourseDetailPage() {
   const [user, setUser] = useState<User | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // 消息提示状态
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
-  // 获取课程信息和视频列表
+  // 获取课程信息、视频列表和班级列表
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
@@ -88,6 +101,20 @@ export default function TeacherCourseDetailPage() {
 
         const videosData = await videosResponse.json();
         setVideos(videosData.videos);
+
+        // 获取班级列表（包括绑定状态）
+        const classesResponse = await fetch(`/api/teacher/courses/${courseId}/classes`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!classesResponse.ok) {
+          throw new Error('获取班级列表失败');
+        }
+
+        const classesData = await classesResponse.json();
+        setClasses(classesData.classes);
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取课程详情失败');
       } finally {
@@ -101,6 +128,46 @@ export default function TeacherCourseDetailPage() {
   // 返回到课程列表
   const handleBack = () => {
     router.push('/teacher');
+  };
+
+  // 处理班级绑定/解绑
+  const handleToggleClassConnection = async (classId: string, isConnected: boolean) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      const method = isConnected ? 'DELETE' : 'POST';
+      const response = await fetch(`/api/teacher/courses/${courseId}/classes/${classId}`, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(isConnected ? '解绑班级失败' : '绑定班级失败');
+      }
+
+      // 重新获取班级列表
+      const classesResponse = await fetch(`/api/teacher/courses/${courseId}/classes`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const classesData = await classesResponse.json();
+      setClasses(classesData.classes);
+
+      setMessage(isConnected ? '班级解绑成功' : '班级绑定成功');
+      setMessageType('success');
+      // 3秒后清除消息
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : '操作失败');
+      setMessageType('error');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   if (loading) {
@@ -175,6 +242,13 @@ export default function TeacherCourseDetailPage() {
 
         {/* 内容区域 */}
         <div className="flex-1">
+          {/* 消息提示 */}
+          {message && (
+            <div className={`mb-6 p-4 rounded-md ${messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {message}
+            </div>
+          )}
+
           {/* 课程信息 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -191,6 +265,35 @@ export default function TeacherCourseDetailPage() {
               <div className="text-gray-600">课程ID: {course?.course_id}</div>
               <div className="text-gray-600">学分: {course?.credit}</div>
             </div>
+          </div>
+
+          {/* 班级绑定 */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">班级绑定</h3>
+            <p className="text-gray-600 mb-4">选择要绑定到本课程的班级：</p>
+            
+            {classes.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                暂无班级
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {classes.map((cls) => (
+                  <div key={cls.class_id} className="flex items-center justify-between p-4 border border-gray-200 rounded-md hover:bg-gray-50">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{cls.class_name}</h4>
+                      <div className="text-sm text-gray-500">年级: {cls.grade}</div>
+                    </div>
+                    <button
+                      onClick={() => handleToggleClassConnection(cls.class_id, cls.is_connected)}
+                      className={`py-2 px-4 rounded-md focus:outline-none ${cls.is_connected ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                    >
+                      {cls.is_connected ? '解绑' : '绑定'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 视频列表 */}
