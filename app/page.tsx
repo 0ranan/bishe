@@ -57,8 +57,7 @@ export default function Home() {
       if (data.user.type === 'student') {
         window.location.href = '/student';
       } else if (data.user.type === 'teacher') {
-        // 教师页面可以后续实现
-        window.location.href = '/';
+        window.location.href = '/teacher';
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '登录失败，请重试');
