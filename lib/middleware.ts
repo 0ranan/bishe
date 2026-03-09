@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken, extractTokenFromHeader, UserType, isTokenExpiringSoon } from './auth';
 
+// API路径配置
+const REFRESH_API_PATH = process.env.REFRESH_API_PATH || '/api/auth/refresh';
+
 /**
  * 验证请求中的 token 并检查用户类型
  * @param request NextRequest 对象
@@ -35,7 +38,7 @@ export async function validateToken(request: NextRequest, requiredType?: UserTyp
     if (refreshToken) {
       try {
         // 调用 refresh token API 刷新 access token
-        const response = await fetch('/api/auth/refresh', {
+        const response = await fetch(REFRESH_API_PATH, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

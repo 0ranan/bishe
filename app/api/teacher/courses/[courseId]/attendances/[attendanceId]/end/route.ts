@@ -10,7 +10,7 @@ export async function PUT(request: NextRequest, { params }: { params: { courseId
 
     // 在 Next.js 15 中，params 需要 await
     const { courseId, attendanceId } = await params;
-    const attendance = await endAttendance(attendanceId);
+    const attendance = await endAttendance(attendanceId, authResult.decoded.id);
 
     const response = NextResponse.json({ attendance }, { status: 200 });
     

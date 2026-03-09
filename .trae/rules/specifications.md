@@ -1,23 +1,10 @@
 # 项目开发规范
 
-## 1. 项目使用的框架版本及依赖
+## 1. 核心技术栈
 
-### 核心框架
-- Next.js: ^15.0.0
-- React: 19.2.14
-- TypeScript: ^5.3.3
-
-### 主要依赖
-- jsonwebtoken: ^9.0.3 - 用于 JWT 令牌生成和验证
-- postgres: ^3.4.4 - 用于 PostgreSQL 数据库连接
-- zod: ^3.22.4 - 用于数据验证
-- jose: ^6.2.0 - 用于 JWT 相关操作
-
-### 开发依赖
-- vitest: ^1.2.0 - 测试框架
-- tailwindcss: 3.4.17 - CSS 框架
-- eslint: ^8.56.0 - 代码检查工具
-- swagger-ui-react: ^5.32.0 - API 文档生成
+框架：Next.js ^15.0.0、React 19.2.14、TypeScript ^5.3.3
+关键依赖：jsonwebtoken、postgres、zod、jose
+开发工具：vitest、tailwindcss、eslint、swagger-ui-react
 
 ## 2. 测试框架的详细要求
 
@@ -43,12 +30,8 @@
 ## 4. 常用工具存放位置及使用规范
 
 ### 工具存放位置
-- 常用工具存放在 `lib` 目录下
-- 数据库相关工具：`db/client.ts`
-- 认证相关工具：`lib/auth.ts`
-- 签到相关工具：`lib/attendance.ts`
-- 中间件工具：`lib/middleware.ts`
-- 数据验证工具：`lib/validators.ts`
+
+- 常用工具存放在 `lib` 目录下,在编写数据库相关内容、认证相关、数据验证相关内容时优先检查工具目录内的工具
 
 ### 工具使用规范
 1. **数据库操作**：必须通过 `db/client.ts` 中的 `sql` 函数执行，禁止直接创建新的数据库连接

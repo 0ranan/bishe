@@ -35,7 +35,7 @@ function generateAttendanceCode(): string {
 }
 
 // 获取教师课程的签到记录
-export async function getTeacherCourseAttendances(courseId: string): Promise<Attendance[]> {
+export async function getTeacherCourseAttendances(courseId: string, teacherId: string): Promise<Attendance[]> {
   try {
     // 检查数据库连接
     const isConnected = await checkDatabaseConnection();
@@ -43,15 +43,18 @@ export async function getTeacherCourseAttendances(courseId: string): Promise<Att
       throw new Error('数据库连接失败，请检查数据库服务是否运行');
     }
 
-    // 首先获取该课程的UUID
+    // 首先获取该课程的UUID，并验证教师是否有权限
     const courseResult = await sql`
-      SELECT id 
-      FROM courses 
-      WHERE course_id = ${courseId}
+      SELECT c.id 
+      FROM courses c
+      JOIN class_course cc ON c.id = cc.course_id
+      JOIN classes cl ON cc.class_id = cl.id
+      JOIN teacher_class tc ON cl.id = tc.class_id
+      WHERE c.course_id = ${courseId} AND tc.teacher_id = ${teacherId}
     `;
 
     if (courseResult.length === 0) {
-      throw new Error('课程不存在');
+      throw new Error('课程不存在或您无权访问');
     }
 
     const courseUuid = courseResult[0].id;
@@ -71,7 +74,7 @@ export async function getTeacherCourseAttendances(courseId: string): Promise<Att
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id IN ${sql(classIds)}
+        WHERE class_id = ANY(${sql(classIds)})
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
@@ -122,7 +125,7 @@ export async function getTeacherCourseAttendances(courseId: string): Promise<Att
 }
 
 // 创建新的签到
-export async function createAttendance(courseId: string, title: string, duration: number): Promise<Attendance> {
+export async function createAttendance(courseId: string, title: string, duration: number, teacherId: string): Promise<Attendance> {
   try {
     // 检查数据库连接
     const isConnected = await checkDatabaseConnection();
@@ -143,20 +146,6 @@ export async function createAttendance(courseId: string, title: string, duration
 
     const courseUuid = courseResult[0].id;
 
-    // 获取教师ID（假设当前用户是教师）
-    // 这里简化处理，实际应该从token中获取
-    const teacherResult = await sql`
-      SELECT id 
-      FROM teachers 
-      LIMIT 1
-    `;
-
-    if (teacherResult.length === 0) {
-      throw new Error('教师不存在');
-    }
-
-    const teacherId = teacherResult[0].id;
-
     // 首先获取该课程绑定的所有班级
     const classesResult = await sql`
       SELECT class_id 
@@ -172,7 +161,7 @@ export async function createAttendance(courseId: string, title: string, duration
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id IN ${sql(classIds)}
+        WHERE class_id = ANY(${sql(classIds)})
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
@@ -223,7 +212,7 @@ export async function createAttendance(courseId: string, title: string, duration
 }
 
 // 结束签到
-export async function endAttendance(attendanceId: string): Promise<Attendance> {
+export async function endAttendance(attendanceId: string, teacherId: string): Promise<Attendance> {
   try {
     // 检查数据库连接
     const isConnected = await checkDatabaseConnection();
@@ -231,7 +220,7 @@ export async function endAttendance(attendanceId: string): Promise<Attendance> {
       throw new Error('数据库连接失败，请检查数据库服务是否运行');
     }
 
-    // 获取签到记录
+    // 获取签到记录，并验证教师是否有权限
     const attendanceResult = await sql`
       SELECT 
         id, 
@@ -241,11 +230,11 @@ export async function endAttendance(attendanceId: string): Promise<Attendance> {
         start_time, 
         end_time 
       FROM course_attendance 
-      WHERE id = ${attendanceId}
+      WHERE id = ${attendanceId} AND teacher_id = ${teacherId}
     `;
 
     if (attendanceResult.length === 0) {
-      throw new Error('签到记录不存在');
+      throw new Error('签到记录不存在或您无权操作');
     }
 
     const attendance = attendanceResult[0];
@@ -278,7 +267,7 @@ export async function endAttendance(attendanceId: string): Promise<Attendance> {
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id IN ${sql(classIds)}
+        WHERE class_id = ANY(${sql(classIds)})
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
