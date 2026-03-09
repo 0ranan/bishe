@@ -139,6 +139,7 @@ CREATE TABLE IF NOT EXISTS course_attendance (
     course_id UUID NOT NULL, -- 课程ID
     teacher_id UUID NOT NULL, -- 发布教师ID
     title VARCHAR(100) NOT NULL, -- 签到标题
+    code VARCHAR(20) NOT NULL, -- 签到码
     start_time TIMESTAMP NOT NULL, -- 签到开始时间
     end_time TIMESTAMP NOT NULL, -- 签到结束时间
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间
