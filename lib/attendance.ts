@@ -74,7 +74,7 @@ export async function getTeacherCourseAttendances(courseId: string, teacherId: s
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id = ANY(${sql(classIds)})
+        WHERE class_id = ANY(${classIds})
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
@@ -161,7 +161,7 @@ export async function createAttendance(courseId: string, title: string, duration
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id = ANY(${sql(classIds)})
+        WHERE class_id = ANY(${classIds})
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
@@ -267,7 +267,7 @@ export async function endAttendance(attendanceId: string, teacherId: string): Pr
       const studentsResult = await sql`
         SELECT COUNT(DISTINCT student_id) as count 
         FROM student_class 
-        WHERE class_id = ANY(${sql(classIds)})
+        WHERE class_id = ANY(${classIds})
       `;
       totalStudents = studentsResult[0]?.count || 0;
     }
