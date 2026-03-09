@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
+import { withAuth } from '@/lib/middleware';
 
 /**
  * 处理获取课程班级绑定状态请求
@@ -13,25 +13,9 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
   try {
     const courseId = (await params).courseId;
 
-    // 从请求头获取 token
-    const authorization = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authorization);
-
-    if (!token) {
-      return NextResponse.json(
-        { error: '缺少访问令牌' },
-        { status: 401 }
-      );
-    }
-
     // 验证 token
-    const user = verifyAccessToken(token);
-    if (!user || user.type !== 'teacher') {
-      return NextResponse.json(
-        { error: '无效的访问令牌' },
-        { status: 401 }
-      );
-    }
+    const result = await withAuth(request, 'teacher');
+    if (result instanceof NextResponse) return result;
 
     // 查询教师的所有班级及其与课程的绑定状态
     const classes = await sql`
@@ -49,15 +33,22 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       LEFT JOIN class_course cc ON c.id = cc.class_id AND cc.course_id = (
         SELECT id FROM courses WHERE course_id = ${courseId}
       )
-      WHERE t.teacher_id = ${user.userId}
+      WHERE t.teacher_id = ${result.decoded.userId}
       ORDER BY c.class_name
     `;
 
     // 返回班级列表
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       classes
     });
+
+    // 如果有新的 token，添加到响应头
+    if (result.newToken) {
+      response.headers.set('x-access-token', result.newToken);
+    }
+
+    return response;
   } catch (error) {
     console.error('获取班级列表失败:', error);
     return NextResponse.json(

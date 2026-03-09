@@ -1,5 +1,5 @@
 // 导入必要的库
-import { sign, verify } from 'jsonwebtoken';
+import { sign, verify, JwtPayload } from 'jsonwebtoken';
 
 // 从环境变量获取密钥
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -71,6 +71,23 @@ export function verifyRefreshToken(token: string): UserPayload | null {
   } catch (error) {
     // 验证失败返回 null
     return null;
+  }
+}
+
+/**
+ * 检查 Access Token 是否即将过期
+ * @param token Access Token 字符串
+ * @param threshold 过期阈值（秒），默认 300 秒（5分钟）
+ * @returns 是否即将过期
+ */
+export function isTokenExpiringSoon(token: string, threshold: number = 300): boolean {
+  try {
+    const decoded = verify(token, JWT_SECRET, { ignoreExpiration: true }) as JwtPayload;
+    const exp = decoded.exp || 0;
+    const now = Math.floor(Date.now() / 1000);
+    return (exp - now) < threshold;
+  } catch (error) {
+    return true; // 验证失败视为即将过期
   }
 }
 

@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
+import { withAuth } from '@/lib/middleware';
 
 /**
  * 处理获取班级学生列表请求
@@ -13,25 +13,9 @@ export async function GET(request: NextRequest, { params }: { params: { classId:
   try {
     const classId = (await params).classId;
 
-    // 从请求头获取 token
-    const authorization = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authorization);
-
-    if (!token) {
-      return NextResponse.json(
-        { error: '缺少访问令牌' },
-        { status: 401 }
-      );
-    }
-
     // 验证 token
-    const user = verifyAccessToken(token);
-    if (!user || user.type !== 'teacher') {
-      return NextResponse.json(
-        { error: '无效的访问令牌' },
-        { status: 401 }
-      );
-    }
+    const result = await withAuth(request, 'teacher');
+    if (result instanceof NextResponse) return result;
 
     // 查询班级学生列表
     const students = await sql`
@@ -45,15 +29,22 @@ export async function GET(request: NextRequest, { params }: { params: { classId:
       JOIN classes c ON tc.class_id = c.id
       JOIN student_class sc ON c.id = sc.class_id
       JOIN students s ON sc.student_id = s.id
-      WHERE t.teacher_id = ${user.userId} AND c.class_id = ${classId}
+      WHERE t.teacher_id = ${result.decoded.userId} AND c.class_id = ${classId}
       ORDER BY s.student_id
     `;
 
     // 返回学生列表
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       students
     });
+
+    // 如果有新的 token，添加到响应头
+    if (result.newToken) {
+      response.headers.set('x-access-token', result.newToken);
+    }
+
+    return response;
   } catch (error) {
     console.error('获取学生列表失败:', error);
     return NextResponse.json(
@@ -73,25 +64,9 @@ export async function POST(request: NextRequest, { params }: { params: { classId
   try {
     const classId = (await params).classId;
 
-    // 从请求头获取 token
-    const authorization = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authorization);
-
-    if (!token) {
-      return NextResponse.json(
-        { error: '缺少访问令牌' },
-        { status: 401 }
-      );
-    }
-
     // 验证 token
-    const user = verifyAccessToken(token);
-    if (!user || user.type !== 'teacher') {
-      return NextResponse.json(
-        { error: '无效的访问令牌' },
-        { status: 401 }
-      );
-    }
+    const result = await withAuth(request, 'teacher');
+    if (result instanceof NextResponse) return result;
 
     // 解析请求体
     const body = await request.json();
@@ -110,7 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: { classId
       FROM teachers t
       JOIN teacher_class tc ON t.id = tc.teacher_id
       JOIN classes c ON tc.class_id = c.id
-      WHERE t.teacher_id = ${user.userId} AND c.class_id = ${classId}
+      WHERE t.teacher_id = ${result.decoded.userId} AND c.class_id = ${classId}
     `;
 
     if (teacherClasses.length === 0) {
@@ -155,10 +130,17 @@ export async function POST(request: NextRequest, { params }: { params: { classId
     `;
 
     // 返回成功响应
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: '学生添加成功'
     });
+
+    // 如果有新的 token，添加到响应头
+    if (result.newToken) {
+      response.headers.set('x-access-token', result.newToken);
+    }
+
+    return response;
   } catch (error) {
     console.error('添加学生失败:', error);
     return NextResponse.json(
@@ -179,25 +161,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { class
     const classId = (await params).classId;
     const studentId = (await params).studentId;
 
-    // 从请求头获取 token
-    const authorization = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authorization);
-
-    if (!token) {
-      return NextResponse.json(
-        { error: '缺少访问令牌' },
-        { status: 401 }
-      );
-    }
-
     // 验证 token
-    const user = verifyAccessToken(token);
-    if (!user || user.type !== 'teacher') {
-      return NextResponse.json(
-        { error: '无效的访问令牌' },
-        { status: 401 }
-      );
-    }
+    const result = await withAuth(request, 'teacher');
+    if (result instanceof NextResponse) return result;
 
     // 检查教师是否有权限管理该班级
     const teacherClasses = await sql`
@@ -205,7 +171,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { class
       FROM teachers t
       JOIN teacher_class tc ON t.id = tc.teacher_id
       JOIN classes c ON tc.class_id = c.id
-      WHERE t.teacher_id = ${user.userId} AND c.class_id = ${classId}
+      WHERE t.teacher_id = ${result.decoded.userId} AND c.class_id = ${classId}
     `;
 
     if (teacherClasses.length === 0) {
@@ -239,10 +205,17 @@ export async function DELETE(request: NextRequest, { params }: { params: { class
     `;
 
     // 返回成功响应
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: '学生删除成功'
     });
+
+    // 如果有新的 token，添加到响应头
+    if (result.newToken) {
+      response.headers.set('x-access-token', result.newToken);
+    }
+
+    return response;
   } catch (error) {
     console.error('删除学生失败:', error);
     return NextResponse.json(

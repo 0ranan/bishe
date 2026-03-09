@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
+import { withAuth } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 export async function GET(
@@ -8,16 +8,8 @@ export async function GET(
 ) {
   try {
     // 验证token
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const decoded = verifyAccessToken(token);
-    if (!decoded || decoded.type !== 'teacher') {
-      return NextResponse.json({ error: '无效的token' }, { status: 401 });
-    }
+    const result = await withAuth(request, 'teacher');
+    if (result instanceof NextResponse) return result;
 
     const { videoId } = await params;
 
@@ -36,7 +28,14 @@ export async function GET(
       ORDER BY vc.created_at DESC
     `;
 
-    return NextResponse.json({ comments });
+    const response = NextResponse.json({ comments });
+
+    // 如果有新的 token，添加到响应头
+    if (result.newToken) {
+      response.headers.set('x-access-token', result.newToken);
+    }
+
+    return response;
   } catch (error) {
     console.error('获取视频评价失败:', error);
     return NextResponse.json({ error: '获取视频评价失败' }, { status: 500 });

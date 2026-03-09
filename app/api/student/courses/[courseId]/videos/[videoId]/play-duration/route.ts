@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
+import { withAuth } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 export async function POST(
@@ -8,16 +8,8 @@ export async function POST(
 ) {
   try {
     // 验证token
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const decoded = verifyAccessToken(token);
-    if (!decoded) {
-      return NextResponse.json({ error: '无效的token' }, { status: 401 });
-    }
+    const result = await withAuth(request, 'student');
+    if (result instanceof NextResponse) return result;
 
     const { videoId } = await params;
     const { duration } = await request.json();
@@ -30,10 +22,17 @@ export async function POST(
     // 插入播放时长记录
     await sql`
       INSERT INTO video_play_duration (student_id, video_id, duration)
-      VALUES (${decoded.id}, ${videoId}, ${duration})
+      VALUES (${result.decoded.id}, ${videoId}, ${duration})
     `;
 
-    return NextResponse.json({ message: '播放时长记录成功' });
+    const response = NextResponse.json({ message: '播放时长记录成功' });
+
+    // 如果有新的 token，添加到响应头
+    if (result.newToken) {
+      response.headers.set('x-access-token', result.newToken);
+    }
+
+    return response;
   } catch (error) {
     console.error('记录播放时长失败:', error);
     return NextResponse.json({ error: '记录播放时长失败' }, { status: 500 });
