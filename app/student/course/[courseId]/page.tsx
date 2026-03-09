@@ -121,49 +121,88 @@ export default function CourseDetailPage() {
 
       {/* 主要内容 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 课程信息 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="text-gray-600">课程ID: {course?.course_id}</div>
-            <div className="text-gray-600">学分: {course?.credit}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* 侧边栏 */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
+              <div className="space-y-2">
+                <button 
+                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
+                >
+                  课程签到
+                </button>
+                <button 
+                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
+                >
+                  课程章节
+                </button>
+                <button 
+                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
+                >
+                  课程讨论
+                </button>
+                <button 
+                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
+                >
+                  学情诊断
+                </button>
+                <button 
+                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
+                >
+                  课程作业
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* 视频列表 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">课程视频</h3>
-          
-          {videos.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              暂无视频
+          {/* 右侧内容 */}
+          <div className="lg:col-span-3">
+            {/* 课程信息 */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="text-gray-600">课程ID: {course?.course_id}</div>
+                <div className="text-gray-600">学分: {course?.credit}</div>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {videos.map((video) => (
-                <div key={video.id} className="flex items-center p-4 border border-gray-200 rounded-md hover:bg-gray-50">
-                  <div className="flex-shrink-0 w-16 h-10 bg-gray-200 rounded flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-grow">
-                    <h4 className="font-medium text-gray-900">{video.title}</h4>
-                    <div className="text-sm text-gray-500">时长: {video.duration}</div>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <button
-                      onClick={() => router.push(`/student/course/${courseId}/video/${video.id}`)}
-                      className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
-                    >
-                      观看视频
-                    </button>
-                  </div>
+
+            {/* 视频列表 */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">课程视频</h3>
+              
+              {videos.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  暂无视频
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  {videos.map((video) => (
+                    <div key={video.id} className="flex items-center p-4 border border-gray-200 rounded-md hover:bg-gray-50">
+                      <div className="flex-shrink-0 w-16 h-10 bg-gray-200 rounded flex items-center justify-center mr-4">
+                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-grow">
+                        <h4 className="font-medium text-gray-900">{video.title}</h4>
+                        <div className="text-sm text-gray-500">时长: {video.duration}</div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <button
+                          onClick={() => router.push(`/student/course/${courseId}/video/${video.id}`)}
+                          className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
+                        >
+                          观看视频
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </main>
     </div>
