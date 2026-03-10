@@ -30,5 +30,8 @@ ENV PYTHONUNBUFFERED=1
 # 暴露端口（如果需要）
 # EXPOSE 8000
 
+# 暴露gRPC服务端口
+EXPOSE 50051
+
 # 运行命令
-CMD ["tail", "-f", "/dev/null"]
+CMD ["python", "grpc_server.py"]

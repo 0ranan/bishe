@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package student_analysis;
+
+// 学生成绩预测服务
+service StudentAnalysisService {
+  // 预测学生成绩
+  rpc PredictGrade (PredictRequest) returns (PredictResponse);
+  // 获取模型信息
+  rpc GetModelInfo (ModelInfoRequest) returns (ModelInfoResponse);
+}
+
+// 预测请求消息
+message PredictRequest {
+  // 音视频学习完成率（0-100）
+  float video_learning = 1;
+  // 资料自主学习完成率（0-100）
+  float material_learning = 2;
+  // 章节学习次数
+  int32 chapter_study_count = 3;
+  // 讨论参与度（0-100）
+  float discussion = 4;
+  // 签到完成率（0-100）
+  float attendance = 5;
+}
+
+// 预测响应消息
+message PredictResponse {
+  // 预测的成绩等级
+  string grade = 1;
+  // 预测的成绩等级编码
+  int32 grade_code = 2;
+  // 预测置信度
+  float confidence = 3;
+}
+
+// 模型信息请求消息
+message ModelInfoRequest {
+}
+
+// 模型信息响应消息
+message ModelInfoResponse {
+  // 模型名称
+  string model_name = 1;
+  // 模型版本
+  string model_version = 2;
+  // 特征列表
+  repeated string features = 3;
+  // 成绩等级映射
+  map<int32, string> grade_mapping = 4;
+}

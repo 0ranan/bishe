@@ -22,3 +22,6 @@ six==1.17.0
 sklearn-compat==0.1.5
 threadpoolctl==3.6.0
 tzdata==2025.3
+grpcio==1.62.0
+grpcio-tools==1.62.0
+protobuf==4.25.3

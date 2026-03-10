@@ -39,6 +39,8 @@ services:
       context: ./python
       dockerfile: Dockerfile
     container_name: vibe_python
+    ports:
+      - "50051:50051"
     volumes:
       - ./python:/app
     environment:

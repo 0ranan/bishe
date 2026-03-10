@@ -9,15 +9,24 @@
 ```
 python/
 ├── Dockerfile              # Docker环境配置文件
-├── test_db_connection.py   # 数据库连接测试脚本
 ├── main.py                 # 主分析脚本
 ├── code.ipynb              # Jupyter Notebook分析文件
+├── grpc_server.py          # gRPC服务端实现
+├── generate_grpc_code.py   # 生成gRPC代码的脚本
 ├── models/                 # 模型文件目录
 │   ├── best_model.pkl      # 训练好的最佳模型
 │   ├── scaler.pkl          # 数据标准化器
 │   ├── features.pkl        # 特征列表
 │   └── grade_mapping.pkl   # 成绩等级映射
 ├── img/                    # 生成的可视化图表
+├── proto/                  # gRPC协议定义
+│   └── student_analysis.proto  # 服务和消息定义
+├── grpc_gen/               # 生成的gRPC代码
+├── test/                   # 测试脚本目录
+│   ├── check_grade_mapping.py  # 检查成绩映射脚本
+│   ├── check_port.py       # 端口检查脚本
+│   ├── test_db_connection.py   # 数据库连接测试脚本
+│   └── grpc_client.py      # gRPC客户端示例
 └── README.md               # 本说明文件
 ```
 
@@ -124,7 +133,7 @@ docker-compose up -d
 ### 2. 测试数据库连接
 
 ```bash
-docker exec -it vibe_python python test_db_connection.py
+docker exec -it vibe_python python test/test_db_connection.py
 ```
 
 ### 3. 运行主分析脚本
@@ -166,6 +175,99 @@ docker exec -it vibe_python jupyter notebook --ip=0.0.0.0 --port=8888 --no-brows
 4. **版本兼容**：确保Python包版本与项目需求兼容
 5. **数据库连接**：确保PostgreSQL数据库服务正常运行
 
+## gRPC服务
+
+### 简介
+本项目提供了基于gRPC的学生成绩预测服务，方便外部系统调用预测模型。
+
+### 文件结构
+
+```
+python/
+├── proto/                     # gRPC协议定义
+│   └── student_analysis.proto  # 服务和消息定义
+├── grpc_gen/                  # 生成的gRPC代码
+├── grpc_server.py             # gRPC服务端实现
+├── generate_grpc_code.py       # 生成gRPC代码的脚本
+└── test/                      # 测试脚本目录
+    └── grpc_client.py         # gRPC客户端示例
+```
+
+### 使用方法
+
+#### 1. 生成gRPC代码
+
+```bash
+docker exec -it vibe_python python generate_grpc_code.py
+```
+
+#### 2. 启动gRPC服务
+
+```bash
+docker exec -d vibe_python python grpc_server.py
+```
+
+#### 3. 测试gRPC服务
+
+```bash
+docker exec -it vibe_python python test/grpc_client.py
+```
+
+### gRPC服务接口
+
+#### 1. PredictGrade
+- **功能**：预测学生成绩等级
+- **请求参数**：
+  - video_learning: 音视频学习完成率（0-100）
+  - material_learning: 资料自主学习完成率（0-100）
+  - chapter_study_count: 章节学习次数
+  - discussion: 讨论参与度（0-100）
+  - attendance: 签到完成率（0-100）
+- **响应**：
+  - grade: 预测的成绩等级（如"优"、"良"等）
+  - grade_code: 预测的成绩等级编码
+  - confidence: 预测置信度
+
+#### 2. GetModelInfo
+- **功能**：获取模型信息
+- **请求参数**：无
+- **响应**：
+  - model_name: 模型名称
+  - model_version: 模型版本
+  - features: 特征列表
+  - grade_mapping: 成绩等级映射
+
+### 外部系统调用示例
+
+```python
+import grpc
+
+# 导入生成的gRPC代码
+import grpc_gen.proto.student_analysis_pb2 as student_analysis_pb2
+import grpc_gen.proto.student_analysis_pb2_grpc as student_analysis_pb2_grpc
+
+# 连接到gRPC服务
+with grpc.insecure_channel('localhost:50051') as channel:
+    # 创建服务 stub
+    stub = student_analysis_pb2_grpc.StudentAnalysisServiceStub(channel)
+    
+    # 构建请求
+    request = student_analysis_pb2.PredictRequest(
+        video_learning=90.0,
+        material_learning=85.0,
+        chapter_study_count=50,
+        discussion=70.0,
+        attendance=95.0
+    )
+    
+    # 发送请求
+    response = stub.PredictGrade(request)
+    
+    # 处理响应
+    print(f"预测成绩等级: {response.grade}")
+    print(f"预测置信度: {response.confidence:.2f}")
+```
+
 ## 后续步骤
 
 1. 根据具体分析需求，修改和扩展 `main.py` 脚本
@@ -173,5 +275,6 @@ docker exec -it vibe_python jupyter notebook --ip=0.0.0.0 --port=8888 --no-brows
 3. 构建和训练深度学习模型
 4. 部署分析模型（如需要）
 5. 定期更新分析结果和模型
+6. 集成gRPC服务到其他系统中
 
 通过本环境配置，可以高效地进行学生数据的深度分析，为教育决策和学生发展提供有力支持。
