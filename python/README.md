@@ -12,6 +12,12 @@ python/
 ├── test_db_connection.py   # 数据库连接测试脚本
 ├── main.py                 # 主分析脚本
 ├── code.ipynb              # Jupyter Notebook分析文件
+├── models/                 # 模型文件目录
+│   ├── best_model.pkl      # 训练好的最佳模型
+│   ├── scaler.pkl          # 数据标准化器
+│   ├── features.pkl        # 特征列表
+│   └── grade_mapping.pkl   # 成绩等级映射
+├── img/                    # 生成的可视化图表
 └── README.md               # 本说明文件
 ```
 
@@ -49,6 +55,63 @@ python/
 ### 测试连接
 - 使用 `test_db_connection.py` 脚本测试数据库连接
 - 该脚本会检查数据库连接状态和基本表结构
+
+## 模型文件说明
+
+### models目录文件作用
+
+1. **best_model.pkl**
+   - 描述：训练好的最佳预测模型（随机森林模型）
+   - 用途：用于预测学生成绩等级
+   - 输入：学生学习行为特征（音视频学习、资料自主学习、章节学习次数、讨论、签到）
+   - 输出：学生成绩等级预测结果
+
+2. **scaler.pkl**
+   - 描述：数据标准化器
+   - 用途：对输入特征进行标准化处理，确保模型输入数据的一致性
+   - 使用方法：在预测前，需要使用该标准化器对新数据进行与训练数据相同的处理
+
+3. **features.pkl**
+   - 描述：特征列表
+   - 用途：存储模型使用的特征名称，确保预测时使用与训练时相同的特征顺序
+   - 内容：['音视频学习(100%)', '资料自主学习(100%)', '章节学习次数', '讨论(100%)', '签到(100%)']
+
+4. **grade_mapping.pkl**
+   - 描述：成绩等级映射
+   - 用途：将模型输出的数字标签映射回实际的成绩等级
+   - 映射关系：{0: '不合格', 1: '合格', 2: '中', 3: '良', 4: '优'}
+
+### 模型使用示例
+
+```python
+import joblib
+
+# 加载模型和相关文件
+best_model = joblib.load('models/best_model.pkl')
+scaler = joblib.load('models/scaler.pkl')
+features = joblib.load('models/features.pkl')
+grade_mapping = joblib.load('models/grade_mapping.pkl')
+
+# 准备新数据（示例）
+new_data = {
+    '音视频学习(100%)': 95,
+    '资料自主学习(100%)': 85,
+    '章节学习次数': 50,
+    '讨论(100%)': 70,
+    '签到(100%)': 100
+}
+
+# 转换为模型输入格式
+X_new = [new_data[feature] for feature in features]
+X_new_scaled = scaler.transform([X_new])
+
+# 预测
+prediction = best_model.predict(X_new_scaled)[0]
+
+# 转换为成绩等级
+grade = grade_mapping[prediction]
+print(f"预测成绩等级: {grade}")
+```
 
 ## 使用方法
 

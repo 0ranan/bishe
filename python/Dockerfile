@@ -10,10 +10,16 @@ RUN apt-get update && apt-get install -y \
     g++ \
     make \
     libpq-dev \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei \
+    xfonts-wqy \
     && rm -rf /var/lib/apt/lists/*
 
+# 复制requirements.txt文件
+COPY requirements.txt .
+
 # 安装Python依赖
-RUN pip install --no-cache-dir psycopg2-binary pandas numpy
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制项目文件
 COPY . .

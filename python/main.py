@@ -9,11 +9,18 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (accuracy_score, f1_score, classification_report, 
                            confusion_matrix, precision_score, recall_score)
 from imblearn.over_sampling import RandomOverSampler
+import joblib
+import os
 import warnings
 warnings.filterwarnings('ignore')
 
+# 创建图片保存目录
+img_dir = 'img'
+if not os.path.exists(img_dir):
+    os.makedirs(img_dir)
+
 # 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'Heiti TC', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
 
 print("=== 基于学习通数据的学情分析与成绩预测模型 ===")
@@ -116,7 +123,7 @@ plt.ylabel('学生人数')
 for i, v in enumerate(grade_dist_filtered.values):
     plt.text(i, v + 0.5, str(v), ha='center', va='bottom', fontsize=11)
 plt.tight_layout()
-plt.savefig('01_成绩等级分布.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '01_成绩等级分布.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 图表2: 特征重要性
@@ -131,7 +138,7 @@ plt.barh(importance_df['特征'], importance_df['重要性'], color='skyblue')
 plt.title('特征重要性分析 (包含签到数据)', fontsize=16, fontweight='bold')
 plt.xlabel('特征重要性')
 plt.tight_layout()
-plt.savefig('02_特征重要性分析.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '02_特征重要性分析.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 图表3: 模型性能对比
@@ -164,7 +171,7 @@ for i, v in enumerate(lr_scores):
     plt.text(i + width/2, v + 0.01, f'{v:.3f}', ha='center', va='bottom')
 
 plt.tight_layout()
-plt.savefig('03_模型性能对比.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '03_模型性能对比.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 图表4: 混淆矩阵对比
@@ -189,7 +196,7 @@ ax2.set_xlabel('预测标签')
 ax2.set_ylabel('真实标签')
 
 plt.tight_layout()
-plt.savefig('04_混淆矩阵对比.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '04_混淆矩阵对比.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 5. 新增特征分析 - 签到数据
@@ -213,7 +220,7 @@ plt.ylabel('平均签到率 (%)')
 plt.xticks(range(len(signin_grade)), signin_grade.index)
 
 plt.tight_layout()
-plt.savefig('05_签到数据分析.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '05_签到数据分析.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 6. 新增实验结果曲线可视化分析
@@ -258,7 +265,7 @@ plt.title('学习曲线 - 训练集大小对性能的影响', fontsize=16, fontw
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig('06_学习曲线.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '06_学习曲线.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 图表7: 特征与成绩的关系曲线
@@ -285,7 +292,7 @@ for i, feature in enumerate(features):
 
 plt.suptitle('学习行为特征与成绩等级的关系曲线', fontsize=16, fontweight='bold')
 plt.tight_layout()
-plt.savefig('07_特征与成绩关系曲线.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(img_dir, '07_特征与成绩关系曲线.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
 # 7. 结果分析
@@ -323,12 +330,38 @@ print(f"2. 最关键特征: {importance_df.loc[importance_df['重要性'].idxmax
 print("3. 学习行为数据能有效预测学业成绩")
 print("4. 签到数据作为学习纪律性指标，已纳入模型分析")
 
+# 8. 模型保存
+print("\n8. 模型保存")
+
+# 创建模型保存目录
+model_dir = 'models'
+if not os.path.exists(model_dir):
+    os.makedirs(model_dir)
+
+# 保存最佳模型（随机森林）
+best_model = rf_model
+joblib.dump(best_model, os.path.join(model_dir, 'best_model.pkl'))
+print("最佳模型已保存: models/best_model.pkl")
+
+# 保存标准化器
+joblib.dump(scaler, os.path.join(model_dir, 'scaler.pkl'))
+print("标准化器已保存: models/scaler.pkl")
+
+# 保存特征列表
+joblib.dump(features, os.path.join(model_dir, 'features.pkl'))
+print("特征列表已保存: models/features.pkl")
+
+# 保存成绩等级映射
+joblib.dump(grade_mapping, os.path.join(model_dir, 'grade_mapping.pkl'))
+print("成绩等级映射已保存: models/grade_mapping.pkl")
+
 print("\n=== 分析完成 ===")
 print("生成的可视化文件:")
-print("01_成绩等级分布.png")
-print("02_特征重要性分析.png") 
-print("03_模型性能对比.png")
-print("04_混淆矩阵对比.png")
-print("05_签到数据分析.png")
-print("06_学习曲线.png")
-print("07_特征与成绩关系曲线.png")
+print("img/01_成绩等级分布.png")
+print("img/02_特征重要性分析.png") 
+print("img/03_模型性能对比.png")
+print("img/04_混淆矩阵对比.png")
+print("img/05_签到数据分析.png")
+print("img/06_学习曲线.png")
+print("img/07_特征与成绩关系曲线.png")
+print("\n模型文件已保存至 models/ 目录")
