@@ -189,7 +189,7 @@ export async function GET(
       ),
       submitted_assignments AS (
           SELECT 
-              COUNT(*) as submitted_count,
+              COUNT(DISTINCT a.assignment_topic_id) as submitted_count,
               AVG(score) as avg_score
           FROM assignments a
           JOIN assignment_topics at ON a.assignment_topic_id = at.id
