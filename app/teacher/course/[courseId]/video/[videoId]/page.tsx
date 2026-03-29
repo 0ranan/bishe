@@ -10,6 +10,7 @@ interface Comment {
   student_name: string;
   content: string;
   rating: number;
+  status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }
 
@@ -49,6 +50,7 @@ export default function TeacherVideoPlayerPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -135,6 +137,70 @@ export default function TeacherVideoPlayerPage() {
   // 返回到课程详情页面
   const handleBack = () => {
     router.push(`/teacher/course/${courseId}`);
+  };
+
+  // 获取审核状态的显示文本
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return '待审核';
+      case 'approved':
+        return '已通过';
+      case 'rejected':
+        return '已拒绝';
+      default:
+        return status;
+    }
+  };
+
+  // 获取审核状态的样式
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // 修改评论审核状态
+  const handleUpdateStatus = async (commentId: string, newStatus: 'pending' | 'approved' | 'rejected') => {
+    try {
+      setUpdatingCommentId(commentId);
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        router.push('/');
+        return;
+      }
+
+      const response = await fetch(`/api/teacher/courses/${courseId}/videos/${videoId}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('更新状态失败');
+      }
+
+      // 更新本地状态
+      setComments(comments.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, status: newStatus }
+          : comment
+      ));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新状态失败');
+    } finally {
+      setUpdatingCommentId(null);
+    }
   };
 
   if (loading) {
@@ -275,8 +341,13 @@ export default function TeacherVideoPlayerPage() {
                   <div key={comment.id} className="p-4 border border-gray-200 rounded-md">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium text-gray-900">{comment.student_name}</div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(comment.created_at).toLocaleString()}
+                      <div className="flex items-center space-x-3">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(comment.status)}`}>
+                          {getStatusLabel(comment.status)}
+                        </span>
+                        <div className="text-sm text-gray-500">
+                          {new Date(comment.created_at).toLocaleString()}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center mb-2">
@@ -289,7 +360,36 @@ export default function TeacherVideoPlayerPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="text-gray-700">{comment.content}</div>
+                    <div className="text-gray-700 mb-4">{comment.content}</div>
+                    
+                    {/* 审核状态修改按钮 */}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">修改状态：</span>
+                      <button
+                        onClick={() => handleUpdateStatus(comment.id, 'pending')}
+                        disabled={updatingCommentId === comment.id || comment.status === 'pending'}
+                        className="px-3 py-1 text-sm rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        待审核
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(comment.id, 'approved')}
+                        disabled={updatingCommentId === comment.id || comment.status === 'approved'}
+                        className="px-3 py-1 text-sm rounded-md bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        通过
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(comment.id, 'rejected')}
+                        disabled={updatingCommentId === comment.id || comment.status === 'rejected'}
+                        className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        拒绝
+                      </button>
+                      {updatingCommentId === comment.id && (
+                        <span className="text-sm text-gray-500">更新中...</span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
