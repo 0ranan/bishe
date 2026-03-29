@@ -22,8 +22,8 @@ export interface UserPayload {
  * @returns Access Token 字符串
  */
 export function generateAccessToken(user: UserPayload): string {
-  // 设置 token 过期时间为 15 分钟
-  const expiresIn = '15m';
+  // 设置 token 过期时间为 30 分钟
+  const expiresIn = '30m';
   
   // 生成 token
   return sign(user, JWT_SECRET, { expiresIn });
