@@ -60,3 +60,4 @@ nginx/video
 __pycache__/
 *.pyo
 *.pyd
+uploads/
