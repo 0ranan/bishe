@@ -46,6 +46,12 @@ export default function TeacherClassDetailPage() {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [newStudentId, setNewStudentId] = useState('');
   
+  // 批量导入学生相关状态
+  const [showBatchImport, setShowBatchImport] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [previewData, setPreviewData] = useState<Record<string, string>[]>([]);
+  const [importing, setImporting] = useState(false);
+  
   // 消息提示状态
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -261,6 +267,106 @@ export default function TeacherClassDetailPage() {
     }
   };
 
+  // 解析CSV文件
+  const parseCSV = (content: string): Record<string, string>[] => {
+    const lines = content.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+    
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const data: Record<string, string>[] = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim());
+      const row: Record<string, string> = {};
+      
+      headers.forEach((header, index) => {
+        row[header] = values[index] || '';
+      });
+      
+      data.push(row);
+    }
+    
+    return data;
+  };
+
+  // 处理文件选择
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setCsvFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      const parsedData = parseCSV(content);
+      setPreviewData(parsedData);
+    };
+    reader.readAsText(file);
+  };
+
+  // 处理批量导入
+  const handleBatchImport = async () => {
+    if (previewData.length === 0) return;
+    
+    setImporting(true);
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      const response = await fetch(`/api/teacher/classes/${classId}/students/batch`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          students: previewData
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '批量导入失败');
+      }
+
+      const result = await response.json();
+      
+      // 重新获取学生列表
+      const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const studentsData = await studentsResponse.json();
+      setStudents(studentsData.students);
+      
+      // 重新获取班级信息以更新学生人数
+      const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const classData = await classResponse.json();
+      setCls(classData.class);
+
+      setShowBatchImport(false);
+      setCsvFile(null);
+      setPreviewData([]);
+      setMessage(`批量导入成功！成功导入 ${result.imported} 个学生${result.existed > 0 ? `，${result.existed} 个学生已存在` : ''}`);
+      setMessageType('success');
+      setTimeout(() => setMessage(''), 5000);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : '批量导入失败');
+      setMessageType('error');
+      setTimeout(() => setMessage(''), 5000);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -438,13 +544,100 @@ export default function TeacherClassDetailPage() {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-gray-900">学生列表</h3>
-              <button
-                onClick={() => setShowAddStudent(!showAddStudent)}
-                className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none"
-              >
-                {showAddStudent ? '取消添加' : '添加学生'}
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowBatchImport(!showBatchImport)}
+                  className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none"
+                >
+                  {showBatchImport ? '取消批量导入' : '批量导入学生'}
+                </button>
+                <button
+                  onClick={() => setShowAddStudent(!showAddStudent)}
+                  className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none"
+                >
+                  {showAddStudent ? '取消添加' : '添加学生'}
+                </button>
+              </div>
             </div>
+
+            {/* 批量导入学生表单 */}
+            {showBatchImport && (
+              <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">批量导入学生</h4>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      CSV格式要求：表头为 student_id, name, password, grade, major（其中 password 可选，默认使用学号作为密码）
+                      <a
+                        href="/students_example.csv"
+                        download
+                        className="text-blue-600 hover:text-blue-800 ml-2"
+                      >
+                        下载示例文件
+                      </a>
+                    </p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">选择CSV文件</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileSelect}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  {csvFile && (
+                    <p className="text-sm text-gray-600">
+                      已选择文件：{csvFile.name}
+                    </p>
+                  )}
+                  {previewData.length > 0 && (
+                    <div>
+                      <h5 className="text-md font-medium text-gray-900 mb-2">数据预览</h5>
+                      <div className="overflow-x-auto max-h-60 overflow-y-auto border border-gray-300 rounded-md">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50 sticky top-0">
+                            <tr>
+                              {Object.keys(previewData[0]).map((header) => (
+                                <th key={header} className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                  {header}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {previewData.slice(0, 5).map((row, index) => (
+                              <tr key={index}>
+                                {Object.entries(row).map(([header, value], idx) => (
+                                  <td 
+                                    key={idx} 
+                                    className={`px-4 py-2 text-sm ${header.toLowerCase() === 'password' && !value ? 'text-yellow-600 italic' : 'text-gray-900'}`}
+                                  >
+                                    {header.toLowerCase() === 'password' && !value ? '使用学号' : value}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {previewData.length > 5 && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          显示前 5 条，共 {previewData.length} 条记录
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {previewData.length > 0 && (
+                    <button
+                      onClick={handleBatchImport}
+                      disabled={importing}
+                      className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+                    >
+                      {importing ? '导入中...' : '确认导入'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* 添加学生表单 */}
             {showAddStudent && (
