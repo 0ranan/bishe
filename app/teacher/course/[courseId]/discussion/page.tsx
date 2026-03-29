@@ -2,22 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import TeacherNavbar from '@/components/teacher/TeacherNavbar';
+import TeacherSidebar from '@/components/teacher/TeacherSidebar';
+import CourseInfo from '@/components/teacher/CourseInfo';
+import MessageToast from '@/components/teacher/MessageToast';
 
-// 定义课程接口
 interface Course {
   course_id: string;
   course_name: string;
   credit: number;
 }
 
-// 定义用户接口
 interface User {
   id: string;
   name: string;
   type: 'student' | 'teacher';
 }
 
-// 定义讨论接口
 interface DiscussionTopic {
   id: string;
   title: string;
@@ -41,32 +42,28 @@ export default function TeacherCourseDiscussionPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newDiscussion, setNewDiscussion] = useState({ title: '', content: '' });
   const [createError, setCreateError] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
-  // 获取课程信息
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
-        // 从本地存储获取 token
         const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
         if (!accessToken || !userData) {
-          // 未登录，重定向到登录页面
           router.push('/');
           return;
         }
 
-        // 解析用户信息
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
 
-        // 验证用户类型
         if (parsedUser.type !== 'teacher') {
           router.push('/');
           return;
         }
 
-        // 获取课程信息
         const courseResponse = await fetch(`/api/teacher/courses/${courseId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -80,7 +77,6 @@ export default function TeacherCourseDiscussionPage() {
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
 
-        // 获取讨论列表
         const discussionResponse = await fetch(`/api/teacher/courses/${courseId}/discussions`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -101,12 +97,10 @@ export default function TeacherCourseDiscussionPage() {
     fetchCourseDetails();
   }, [courseId, router]);
 
-  // 返回到课程列表
   const handleBack = () => {
     router.push('/teacher');
   };
 
-  // 发布讨论
   const handleCreateDiscussion = async () => {
     if (!newDiscussion.title || !newDiscussion.content) {
       setCreateError('标题和内容不能为空');
@@ -114,7 +108,6 @@ export default function TeacherCourseDiscussionPage() {
     }
 
     try {
-      // 从本地存储获取 token
       const accessToken = localStorage.getItem('accessToken');
 
       if (!accessToken) {
@@ -137,6 +130,9 @@ export default function TeacherCourseDiscussionPage() {
         setShowCreateModal(false);
         setNewDiscussion({ title: '', content: '' });
         setCreateError('');
+        setMessage('讨论发布成功');
+        setMessageType('success');
+        setTimeout(() => setMessage(''), 3000);
       } else {
         const errorData = await response.json();
         setCreateError(errorData.error || '发布失败');
@@ -164,125 +160,16 @@ export default function TeacherCourseDiscussionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">教师中心</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">欢迎，{user?.name}</span>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  localStorage.removeItem('user');
-                  window.location.href = '/';
-                }}
-                className="bg-gray-200 text-gray-700 py-1 px-3 rounded-md hover:bg-gray-300 focus:outline-none"
-              >
-                登出
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {user && <TeacherNavbar user={user} />}
 
-      {/* 主要内容 */}
       <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 侧边栏 */}
-        <div className="w-64 mr-8">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">导航菜单</h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => router.push('/teacher')}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  我的课程
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push('/teacher/classes')}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  我的班级
-                </button>
-              </li>
-            </ul>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">课程管理</h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/attendance`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程签到
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/chapters`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程章节
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/discussion`)}
-                  className="w-full text-left py-2 px-3 rounded-md bg-blue-50 text-blue-600 font-medium"
-                >
-                  课程讨论
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/diagnosis`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  学情诊断
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/assignments`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程作业
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <TeacherSidebar courseId={courseId} activeMenuItem="discussion" />
 
-        {/* 内容区域 */}
         <div className="flex-1">
-          {/* 课程信息 */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">课程讨论</h2>
-              <button
-                onClick={handleBack}
-                className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none"
-              >
-                ← 返回课程列表
-              </button>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="text-gray-600">课程ID: {course?.course_id}</div>
-              <div className="text-gray-600">学分: {course?.credit}</div>
-            </div>
-          </div>
+          <MessageToast message={message} type={messageType} />
+          
+          {course && <CourseInfo course={course} onBack={handleBack} />}
 
-          {/* 讨论功能 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-900">讨论管理</h3>
@@ -294,7 +181,6 @@ export default function TeacherCourseDiscussionPage() {
               </button>
             </div>
 
-            {/* 讨论列表 */}
             {discussions.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 暂无讨论内容
@@ -317,7 +203,6 @@ export default function TeacherCourseDiscussionPage() {
               </div>
             )}
 
-            {/* 发布讨论模态框 */}
             {showCreateModal && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg p-6 w-full max-w-md">

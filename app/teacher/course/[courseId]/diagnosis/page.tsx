@@ -3,22 +3,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Chart from 'chart.js/auto';
+import TeacherNavbar from '@/components/teacher/TeacherNavbar';
+import TeacherSidebar from '@/components/teacher/TeacherSidebar';
+import CourseInfo from '@/components/teacher/CourseInfo';
 
-// 定义课程接口
 interface Course {
   course_id: string;
   course_name: string;
   credit: number;
 }
 
-// 定义用户接口
 interface User {
   id: string;
   name: string;
   type: 'student' | 'teacher';
 }
 
-// 定义学习行为数据接口
 interface LearningBehavior {
   videoLearning: number;
   materialLearning: number;
@@ -27,7 +27,6 @@ interface LearningBehavior {
   attendance: number;
 }
 
-// 定义作业情况接口
 interface Assignment {
   total_assignments: number;
   submitted_assignments: number;
@@ -35,7 +34,6 @@ interface Assignment {
   avg_score: number;
 }
 
-// 定义诊断数据接口
 interface DiagnosisData {
   learningBehavior: LearningBehavior;
   assignment: Assignment;
@@ -44,7 +42,6 @@ interface DiagnosisData {
   suggestions: string[];
 }
 
-// 定义学生接口
 interface Student {
   id: string;
   name: string;
@@ -65,7 +62,6 @@ export default function TeacherCourseDiagnosisPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 图表引用
   const videoChartRef = useRef<HTMLCanvasElement>(null);
   const materialChartRef = useRef<HTMLCanvasElement>(null);
   const discussionChartRef = useRef<HTMLCanvasElement>(null);
@@ -73,31 +69,25 @@ export default function TeacherCourseDiagnosisPage() {
   const totalScoreChartRef = useRef<HTMLCanvasElement>(null);
   const charts = useRef<any[]>([]);
 
-  // 获取课程信息和学生学情数据
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
-        // 从本地存储获取 token
         const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
         if (!accessToken || !userData) {
-          // 未登录，重定向到登录页面
           router.push('/');
           return;
         }
 
-        // 解析用户信息
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
 
-        // 验证用户类型
         if (parsedUser.type !== 'teacher') {
           router.push('/');
           return;
         }
 
-        // 获取课程信息
         const courseResponse = await fetch(`/api/teacher/courses/${courseId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -111,7 +101,6 @@ export default function TeacherCourseDiagnosisPage() {
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
 
-        // 获取学生学情数据
         const diagnosisResponse = await fetch(`/api/teacher/courses/${courseId}/diagnosis`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -134,10 +123,8 @@ export default function TeacherCourseDiagnosisPage() {
     fetchCourseDetails();
   }, [courseId, router]);
 
-  // 初始化图表
   useEffect(() => {
     if (expandedStudent) {
-      // 清理之前的图表
       charts.current.forEach(chart => chart.destroy());
       charts.current = [];
 
@@ -145,7 +132,6 @@ export default function TeacherCourseDiagnosisPage() {
       if (student && student.diagnosis) {
         const diagnosisData = student.diagnosis;
 
-        // 综合得分饼状图
         if (totalScoreChartRef.current) {
           const totalScoreChart = new Chart(totalScoreChartRef.current, {
             type: 'doughnut',
@@ -177,7 +163,6 @@ export default function TeacherCourseDiagnosisPage() {
           charts.current.push(totalScoreChart);
         }
 
-        // 音视频学习完成率饼状图
         if (videoChartRef.current) {
           const videoChart = new Chart(videoChartRef.current, {
             type: 'doughnut',
@@ -206,7 +191,6 @@ export default function TeacherCourseDiagnosisPage() {
           charts.current.push(videoChart);
         }
 
-        // 资料自主学习完成率饼状图
         if (materialChartRef.current) {
           const materialChart = new Chart(materialChartRef.current, {
             type: 'doughnut',
@@ -235,7 +219,6 @@ export default function TeacherCourseDiagnosisPage() {
           charts.current.push(materialChart);
         }
 
-        // 讨论参与度饼状图
         if (discussionChartRef.current) {
           const discussionChart = new Chart(discussionChartRef.current, {
             type: 'doughnut',
@@ -264,7 +247,6 @@ export default function TeacherCourseDiagnosisPage() {
           charts.current.push(discussionChart);
         }
 
-        // 签到完成率饼状图
         if (attendanceChartRef.current) {
           const attendanceChart = new Chart(attendanceChartRef.current, {
             type: 'doughnut',
@@ -295,18 +277,15 @@ export default function TeacherCourseDiagnosisPage() {
       }
     }
 
-    // 清理函数
     return () => {
       charts.current.forEach(chart => chart.destroy());
     };
   }, [expandedStudent, students]);
 
-  // 返回到课程列表
   const handleBack = () => {
     router.push('/teacher');
   };
 
-  // 切换学生展开状态
   const toggleStudentExpansion = (studentId: string) => {
     setExpandedStudent(expandedStudent === studentId ? null : studentId);
   };
@@ -329,125 +308,14 @@ export default function TeacherCourseDiagnosisPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">教师中心</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">欢迎，{user?.name}</span>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  localStorage.removeItem('user');
-                  window.location.href = '/';
-                }}
-                className="bg-gray-200 text-gray-700 py-1 px-3 rounded-md hover:bg-gray-300 focus:outline-none"
-              >
-                登出
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {user && <TeacherNavbar user={user} />}
 
-      {/* 主要内容 */}
       <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 侧边栏 */}
-        <div className="w-64 mr-8">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">导航菜单</h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => router.push('/teacher')}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  我的课程
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push('/teacher/classes')}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  我的班级
-                </button>
-              </li>
-            </ul>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">课程管理</h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/attendance`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程签到
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/chapters`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程章节
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/discussion`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程讨论
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/diagnosis`)}
-                  className="w-full text-left py-2 px-3 rounded-md bg-blue-50 text-blue-600 font-medium"
-                >
-                  学情诊断
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push(`/teacher/course/${courseId}/assignments`)}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  课程作业
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <TeacherSidebar courseId={courseId} activeMenuItem="diagnosis" />
 
-        {/* 内容区域 */}
         <div className="flex-1">
-          {/* 课程信息 */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">学情诊断</h2>
-              <button
-                onClick={handleBack}
-                className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none"
-              >
-                ← 返回课程列表
-              </button>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="text-gray-600">课程ID: {course?.course_id}</div>
-              <div className="text-gray-600">学分: {course?.credit}</div>
-            </div>
-          </div>
+          {course && <CourseInfo course={course} onBack={handleBack} />}
 
-          {/* 学生学情列表 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">学生学情分析</h3>
             
@@ -459,7 +327,6 @@ export default function TeacherCourseDiagnosisPage() {
               <div className="space-y-4">
                 {students.map((student) => (
                   <div key={student.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                    {/* 学生概览 */}
                     <button
                       onClick={() => toggleStudentExpansion(student.id)}
                       className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
@@ -488,10 +355,8 @@ export default function TeacherCourseDiagnosisPage() {
                       </div>
                     </button>
                     
-                    {/* 学生详情 */}
                     {expandedStudent === student.id && student.diagnosis && (
                       <div className="p-4 border-t border-gray-200">
-                        {/* 综合得分 */}
                         <div className="mb-8">
                           <h4 className="text-lg font-medium text-gray-800 mb-4">综合得分</h4>
                           <div className="flex flex-col md:flex-row items-center justify-center">
@@ -514,11 +379,9 @@ export default function TeacherCourseDiagnosisPage() {
                           </div>
                         </div>
 
-                        {/* 学习行为指标 */}
                         <div className="mb-8">
                           <h4 className="text-lg font-medium text-gray-800 mb-4">学习行为指标</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* 音视频学习完成率 */}
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <div className="flex justify-between items-center mb-2">
                                 <span className="text-gray-700">音视频学习完成率</span>
@@ -529,7 +392,6 @@ export default function TeacherCourseDiagnosisPage() {
                               </div>
                             </div>
 
-                            {/* 资料自主学习完成率 */}
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <div className="flex justify-between items-center mb-2">
                                 <span className="text-gray-700">资料自主学习完成率</span>
@@ -540,7 +402,6 @@ export default function TeacherCourseDiagnosisPage() {
                               </div>
                             </div>
 
-                            {/* 讨论参与度 */}
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <div className="flex justify-between items-center mb-2">
                                 <span className="text-gray-700">讨论参与度</span>
@@ -551,7 +412,6 @@ export default function TeacherCourseDiagnosisPage() {
                               </div>
                             </div>
 
-                            {/* 签到完成率 */}
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <div className="flex justify-between items-center mb-2">
                                 <span className="text-gray-700">签到完成率</span>
@@ -563,7 +423,6 @@ export default function TeacherCourseDiagnosisPage() {
                             </div>
                           </div>
 
-                          {/* 章节学习次数 */}
                           <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
                             <div className="flex justify-between items-center">
                               <span className="text-gray-700">章节学习次数</span>
@@ -572,7 +431,6 @@ export default function TeacherCourseDiagnosisPage() {
                           </div>
                         </div>
 
-                        {/* 作业情况 */}
                         <div className="mb-8">
                           <h4 className="text-lg font-medium text-gray-800 mb-4">作业情况</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -597,7 +455,6 @@ export default function TeacherCourseDiagnosisPage() {
                           </div>
                         </div>
 
-                        {/* 学习建议 */}
                         <div>
                           <h4 className="text-lg font-medium text-gray-800 mb-4">学习建议</h4>
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
