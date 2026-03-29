@@ -53,3 +53,5 @@ temp/
 *.tsbuildinfo
 
 nginx/video
+*.pyc
+python/grpc_gen/proto/__pycache__/student_analysis_pb2_grpc.cpython-310.pyc
