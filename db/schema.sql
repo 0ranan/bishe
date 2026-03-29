@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS teachers (
     name VARCHAR(50) NOT NULL, -- 姓名
     department VARCHAR(100), -- 部门
     title VARCHAR(50), -- 职称
+    role VARCHAR(20) DEFAULT 'teacher', -- 角色：teacher(普通教师)或admin(管理员)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 创建时间
 );
 

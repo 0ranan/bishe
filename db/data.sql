@@ -6,9 +6,14 @@ INSERT INTO classes (class_id, class_name, grade)
 VALUES ('C2023001', '计算机学院2023级混合班', '2023级')
 ON CONFLICT (class_id) DO NOTHING;
 
--- 插入初始教师信息
-INSERT INTO teachers (teacher_id, password, name, department, title)
-VALUES ('T001', 'teacher123', '王老师', '计算机学院', '教授')
+-- 插入初始教师信息（管理员）
+INSERT INTO teachers (teacher_id, password, name, department, title, role)
+VALUES ('ADMIN001', 'admin123', '系统管理员', '教务处', '管理员', 'admin')
+ON CONFLICT (teacher_id) DO NOTHING;
+
+-- 插入初始教师信息（普通教师）
+INSERT INTO teachers (teacher_id, password, name, department, title, role)
+VALUES ('T001', 'teacher123', '王老师', '计算机学院', '教授', 'teacher')
 ON CONFLICT (teacher_id) DO NOTHING;
 
 -- 插入初始学生信息（30条）

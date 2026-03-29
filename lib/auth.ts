@@ -14,6 +14,7 @@ export interface UserPayload {
   userId: string;
   name: string;
   type: UserType;
+  role?: string;
 }
 
 /**

@@ -15,6 +15,7 @@ interface User {
   id: string;
   name: string;
   type: 'student' | 'teacher';
+  role?: string;
 }
 
 export default function TeacherPage() {
@@ -232,6 +233,16 @@ export default function TeacherPage() {
                   我的班级
                 </button>
               </li>
+              {user?.role === 'admin' && (
+                <li>
+                  <button
+                    onClick={() => router.push('/admin/teachers')}
+                    className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100 text-purple-600 font-medium"
+                  >
+                    教师管理
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>

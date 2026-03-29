@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     } else if (type === 'teacher') {
       // 查询教师信息
       const teachers = await sql`
-        SELECT id, teacher_id, name, password FROM teachers
+        SELECT id, teacher_id, name, password, role FROM teachers
         WHERE teacher_id = ${id}
       `;
 
@@ -84,7 +84,8 @@ export async function POST(request: NextRequest) {
       id: user.id,
       userId: type === 'student' ? user.student_id : user.teacher_id,
       name: user.name,
-      type
+      type,
+      role: type === 'teacher' ? user.role : null
     };
 
     // 生成 Access Token 和 Refresh Token
@@ -97,7 +98,8 @@ export async function POST(request: NextRequest) {
       user: {
         id: userPayload.userId,
         name: userPayload.name,
-        type: userPayload.type
+        type: userPayload.type,
+        role: userPayload.role
       },
       tokens: {
         accessToken,
