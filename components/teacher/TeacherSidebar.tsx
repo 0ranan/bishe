@@ -14,6 +14,7 @@ export default function TeacherSidebar({ courseId, activeMenuItem }: TeacherSide
   const menuItems = [
     { key: 'attendance', label: '课程签到', path: `/teacher/course/${courseId}/attendance` },
     { key: 'chapters', label: '课程章节', path: `/teacher/course/${courseId}/chapters` },
+    { key: 'resources', label: '课程附件', path: `/teacher/course/${courseId}/resources` },
     { key: 'discussion', label: '课程讨论', path: `/teacher/course/${courseId}/discussion` },
     { key: 'diagnosis', label: '学情诊断', path: `/teacher/course/${courseId}/diagnosis` },
     { key: 'assignments', label: '课程作业', path: `/teacher/course/${courseId}/assignments` },
