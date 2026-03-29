@@ -52,6 +52,11 @@ temp/
 # TypeScript
 *.tsbuildinfo
 
+# Video files
 nginx/video
+
+# Python files
 *.pyc
-python/grpc_gen/proto/__pycache__/student_analysis_pb2_grpc.cpython-310.pyc
+__pycache__/
+*.pyo
+*.pyd
