@@ -13,7 +13,7 @@ export async function GET(
 
     const { videoId } = await params;
 
-    // 获取视频评价，包括学生姓名
+    // 获取视频评价，包括学生姓名，教师可以看到所有状态的评论
     const comments = await sql`
       SELECT 
         vc.id, 
@@ -21,6 +21,7 @@ export async function GET(
         s.name as student_name, 
         vc.content, 
         vc.rating, 
+        vc.status,
         vc.created_at
       FROM video_comments vc
       JOIN students s ON vc.student_id = s.id

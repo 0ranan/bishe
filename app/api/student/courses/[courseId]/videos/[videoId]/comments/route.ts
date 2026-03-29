@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/middleware';
 import { sql } from '@/db/client';
+import { moderateContent } from '@/lib/aigc';
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +14,7 @@ export async function GET(
 
     const { videoId } = await params;
 
-    // 获取视频评价，包括学生姓名
+    // 获取视频评价，包括学生姓名，只显示已审核通过的评论
     const comments = await sql`
       SELECT 
         vc.id, 
@@ -21,10 +22,11 @@ export async function GET(
         s.name as student_name, 
         vc.content, 
         vc.rating, 
+        vc.status,
         vc.created_at
       FROM video_comments vc
       JOIN students s ON vc.student_id = s.id
-      WHERE vc.video_id = ${videoId}
+      WHERE vc.video_id = ${videoId} AND vc.status = 'approved'
       ORDER BY vc.created_at DESC
     `;
 
@@ -59,12 +61,30 @@ export async function POST(
       return NextResponse.json({ error: '评价内容和评分不能为空，且评分必须在1-5之间' }, { status: 400 });
     }
 
-    // 插入评价
+    // 插入评价，初始状态为待审核
     const [comment] = await sql`
-      INSERT INTO video_comments (video_id, student_id, content, rating)
-      VALUES (${videoId}, ${result.decoded.id}, ${content}, ${rating})
-      RETURNING id, student_id, content, rating, created_at
+      INSERT INTO video_comments (video_id, student_id, content, rating, status)
+      VALUES (${videoId}, ${result.decoded.id}, ${content}, ${rating}, 'pending')
+      RETURNING id, student_id, content, rating, status, created_at
     `;
+
+    // 异步进行AIGC审核，不阻塞响应
+    (async () => {
+      try {
+        const moderationResult = await moderateContent(content);
+        const newStatus = moderationResult.approved ? 'approved' : 'rejected';
+        
+        await sql`
+          UPDATE video_comments 
+          SET status = ${newStatus}, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${comment.id}
+        `;
+        
+        console.log(`评论 ${comment.id} 审核完成，状态: ${newStatus}`);
+      } catch (error) {
+        console.error('AIGC审核失败:', error);
+      }
+    })();
 
     // 获取学生姓名
     const [student] = await sql`

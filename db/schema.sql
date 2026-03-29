@@ -115,7 +115,9 @@ CREATE TABLE IF NOT EXISTS video_comments (
     student_id UUID NOT NULL, -- 学生ID
     content TEXT NOT NULL, -- 评论内容
     rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5), -- 评分（1-5分）
+    status VARCHAR(20) DEFAULT 'pending', -- 审核状态：pending(待审核), approved(已通过), rejected(已拒绝)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 更新时间
     FOREIGN KEY (video_id) REFERENCES course_videos(id) ON DELETE CASCADE, -- 外键关联视频表
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE -- 外键关联学生表
 );
@@ -208,7 +210,9 @@ CREATE TABLE IF NOT EXISTS topic_comments (
     topic_id UUID NOT NULL, -- 话题ID
     student_id UUID NOT NULL, -- 学生ID
     content TEXT NOT NULL, -- 评论内容
+    status VARCHAR(20) DEFAULT 'pending', -- 审核状态：pending(待审核), approved(已通过), rejected(已拒绝)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 更新时间
     FOREIGN KEY (topic_id) REFERENCES discussion_topics(id) ON DELETE CASCADE, -- 外键关联话题表
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE -- 外键关联学生表
 );

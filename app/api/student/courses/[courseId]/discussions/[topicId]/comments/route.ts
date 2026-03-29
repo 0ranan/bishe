@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/middleware';
 import { sql } from '@/db/client';
+import { moderateContent } from '@/lib/aigc';
+
+// 定义数据库行类型
+interface TopicCommentRow {
+  id: string;
+  topic_id: string;
+  student_id: string;
+  student_name: string;
+  content: string;
+  status: string;
+  created_at: Date;
+}
 
 // 定义评论接口
 export interface TopicComment {
@@ -9,6 +21,7 @@ export interface TopicComment {
   student_id: string;
   student_name: string;
   content: string;
+  status?: string;
   created_at: string;
 }
 
@@ -26,7 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 
     const { topicId } = await params;
 
-    // 获取评论列表
+    // 获取评论列表，只显示已审核通过的评论
     const commentResult = await sql`
       SELECT 
         tc.id, 
@@ -34,19 +47,21 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
         tc.student_id, 
         s.name as student_name, 
         tc.content, 
+        tc.status,
         tc.created_at
       FROM topic_comments tc
       JOIN students s ON tc.student_id = s.id
-      WHERE tc.topic_id = ${topicId}
+      WHERE tc.topic_id = ${topicId} AND tc.status = 'approved'
       ORDER BY tc.created_at ASC
     `;
 
-    const comments: TopicComment[] = commentResult.map((row: any) => ({
+    const comments: TopicComment[] = commentResult.map((row: TopicCommentRow) => ({
       id: row.id,
       topic_id: row.topic_id,
       student_id: row.student_id,
       student_name: row.student_name,
       content: row.content,
+      status: row.status,
       created_at: row.created_at.toISOString()
     }));
 
@@ -92,12 +107,30 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
       return NextResponse.json({ error: '讨论主题不存在' }, { status: 404 });
     }
 
-    // 创建评论
+    // 创建评论，初始状态为待审核
     const result = await sql`
-      INSERT INTO topic_comments (topic_id, student_id, content, created_at) 
-      VALUES (${topicId}, ${studentId}, ${content}, ${new Date()}) 
+      INSERT INTO topic_comments (topic_id, student_id, content, status, created_at) 
+      VALUES (${topicId}, ${studentId}, ${content}, 'pending', ${new Date()}) 
       RETURNING id
     `;
+
+    // 异步进行AIGC审核，不阻塞响应
+    (async () => {
+      try {
+        const moderationResult = await moderateContent(content);
+        const newStatus = moderationResult.approved ? 'approved' : 'rejected';
+        
+        await sql`
+          UPDATE topic_comments 
+          SET status = ${newStatus}, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${result[0].id}
+        `;
+        
+        console.log(`话题评论 ${result[0].id} 审核完成，状态: ${newStatus}`);
+      } catch (error) {
+        console.error('AIGC审核失败:', error);
+      }
+    })();
 
     const commentId = result[0].id;
 
