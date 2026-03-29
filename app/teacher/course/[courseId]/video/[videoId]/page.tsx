@@ -51,6 +51,7 @@ export default function TeacherVideoPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -203,6 +204,11 @@ export default function TeacherVideoPlayerPage() {
     }
   };
 
+  // 筛选评论
+  const filteredComments = filterStatus === 'all' 
+    ? comments 
+    : comments.filter(comment => comment.status === filterStatus);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -328,16 +334,47 @@ export default function TeacherVideoPlayerPage() {
 
           {/* 评价列表 */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">视频评价</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">视频评价</h3>
+              
+              {/* 状态筛选 */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">筛选状态：</span>
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className={`px-3 py-1 text-sm rounded-md ${filterStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                >
+                  全部
+                </button>
+                <button
+                  onClick={() => setFilterStatus('pending')}
+                  className={`px-3 py-1 text-sm rounded-md ${filterStatus === 'pending' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'}`}
+                >
+                  待审核
+                </button>
+                <button
+                  onClick={() => setFilterStatus('approved')}
+                  className={`px-3 py-1 text-sm rounded-md ${filterStatus === 'approved' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+                >
+                  已通过
+                </button>
+                <button
+                  onClick={() => setFilterStatus('rejected')}
+                  className={`px-3 py-1 text-sm rounded-md ${filterStatus === 'rejected' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800 hover:bg-red-200'}`}
+                >
+                  已拒绝
+                </button>
+              </div>
+            </div>
             
             {/* 评价列表 */}
-            {comments.length === 0 ? (
+            {filteredComments.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                暂无评价
+                {filterStatus === 'all' ? '暂无评价' : '暂无此状态的评价'}
               </div>
             ) : (
               <div className="space-y-6">
-                {comments.map((comment) => (
+                {filteredComments.map((comment) => (
                   <div key={comment.id} className="p-4 border border-gray-200 rounded-md">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium text-gray-900">{comment.student_name}</div>
