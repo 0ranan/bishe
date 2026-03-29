@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import StudentNavbar from '@/components/student/StudentNavbar';
+import StudentSidebar from '@/components/student/StudentSidebar';
+import CourseInfo from '@/components/student/CourseInfo';
 
-// 定义课程接口
 interface Course {
   course_id: string;
   course_name: string;
   credit: number;
 }
 
-// 定义签到接口
 interface Attendance {
   id: string;
   title: string;
@@ -33,20 +34,16 @@ export default function AttendancePage() {
   const [签到码, set签到码] = useState('');
   const [签到状态, set签到状态] = useState('');
 
-  // 获取课程信息和签到记录
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
-        // 从本地存储获取 token
         const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
-          // 未登录，重定向到登录页面
           router.push('/');
           return;
         }
 
-        // 获取课程信息
         const courseResponse = await fetch(`/api/student/courses/${courseId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -60,7 +57,6 @@ export default function AttendancePage() {
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
 
-        // 获取签到记录
         const attendanceResponse = await fetch(`/api/student/courses/${courseId}/attendances`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -83,14 +79,11 @@ export default function AttendancePage() {
     fetchCourseDetails();
   }, [courseId, router]);
 
-  // 提交签到
   const handle签到 = async () => {
     try {
-      // 从本地存储获取 token
       const accessToken = localStorage.getItem('accessToken');
 
       if (!accessToken) {
-        // 未登录，重定向到登录页面
         router.push('/');
         return;
       }
@@ -100,7 +93,6 @@ export default function AttendancePage() {
         return;
       }
 
-      // 提交签到
       const response = await fetch(`/api/student/courses/${courseId}/attendances`, {
         method: 'POST',
         headers: {
@@ -113,7 +105,6 @@ export default function AttendancePage() {
       if (response.ok) {
         const data = await response.json();
         set签到状态(data.message);
-        // 重新获取签到记录
         const attendanceResponse = await fetch(`/api/student/courses/${courseId}/attendances`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -132,7 +123,6 @@ export default function AttendancePage() {
     }
   };
 
-  // 返回到课程列表
   const handleBack = () => {
     router.push(`/student/course/${courseId}`);
   };
@@ -155,83 +145,15 @@ export default function AttendancePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBack}
-                className="text-gray-600 hover:text-gray-900 focus:outline-none"
-              >
-                ← 返回课程详情
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">课程签到</h1>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar title="课程签到" onBack={handleBack} />
 
-      {/* 主要内容 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* 侧边栏 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
-              <div className="space-y-2">
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  代办界面
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/attendance`)}
-                  className="w-full text-left p-3 rounded-md bg-blue-50 text-blue-600 font-medium"
-                >
-                  课程签到
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/chapters`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程章节
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/discussion`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程讨论
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/diagnosis`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  学情诊断
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/assignments`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程作业
-                </button>
-              </div>
-            </div>
-          </div>
+          <StudentSidebar courseId={courseId} activeMenuItem="attendance" />
 
-          {/* 右侧内容 */}
           <div className="lg:col-span-3">
-            {/* 课程信息 */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="text-gray-600">课程ID: {course?.course_id}</div>
-                <div className="text-gray-600">学分: {course?.credit}</div>
-              </div>
-            </div>
+            {course && <CourseInfo course={course} />}
 
-            {/* 签到表单 */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">提交签到</h3>
               <div className="space-y-4">
@@ -259,7 +181,6 @@ export default function AttendancePage() {
               </div>
             </div>
 
-            {/* 签到记录 */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">签到记录</h3>
               
@@ -270,23 +191,23 @@ export default function AttendancePage() {
               ) : (
                 <div className="space-y-4">
                   {attendances.map((attendance) => (
-                    <div key={attendance.id} className={`p-4 border rounded-md ${attendance.status === 'active' ? 'border-yellow-200 bg-yellow-50' : attendance.status === 'missed' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-medium text-gray-900">{attendance.title}</h4>
-                        <span className={`text-xs px-2 py-1 rounded ${attendance.status === 'active' ? 'bg-yellow-500 text-white' : attendance.status === 'missed' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'}`}>
-                          {attendance.status === 'active' ? '进行中' : attendance.status === 'missed' ? '未签到' : '已结束'}
-                        </span>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-600">
-                        <div>签到码: <span className="font-medium">{attendance.code}</span></div>
-                        <div>开始时间: {new Date(attendance.start_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
-                        <div>结束时间: {new Date(attendance.end_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
-                        <div>签到状态: <span className={`font-medium ${attendance.attended ? 'text-green-600' : 'text-red-600'}`}>
-                          {attendance.attended ? '已签到' : '未签到'}
-                        </span></div>
-                      </div>
+                  <div key={attendance.id} className={`p-4 border rounded-md ${attendance.status === 'active' ? 'border-yellow-200 bg-yellow-50' : attendance.status === 'missed' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium text-gray-900">{attendance.title}</h4>
+                      <span className={`text-xs px-2 py-1 rounded ${attendance.status === 'active' ? 'bg-yellow-500 text-white' : attendance.status === 'missed' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'}`}>
+                        {attendance.status === 'active' ? '进行中' : attendance.status === 'missed' ? '未签到' : '已结束'}
+                      </span>
                     </div>
-                  ))}
+                    <div className="mt-2 text-sm text-gray-600">
+                      <div>签到码: <span className="font-medium">{attendance.code}</span></div>
+                      <div>开始时间: {new Date(attendance.start_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
+                      <div>结束时间: {new Date(attendance.end_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
+                      <div>签到状态: <span className={`font-medium ${attendance.attended ? 'text-green-600' : 'text-red-600'}`}>
+                        {attendance.attended ? '已签到' : '未签到'}
+                      </span></div>
+                    </div>
+                  </div>
+                ))}
                 </div>
               )}
             </div>

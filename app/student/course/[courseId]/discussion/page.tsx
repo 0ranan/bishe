@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import StudentNavbar from '@/components/student/StudentNavbar';
+import StudentSidebar from '@/components/student/StudentSidebar';
+import CourseInfo from '@/components/student/CourseInfo';
 
-// 定义课程接口
 interface Course {
   course_id: string;
   course_name: string;
   credit: number;
 }
 
-// 定义讨论接口
 interface DiscussionTopic {
   id: string;
   title: string;
@@ -21,7 +22,6 @@ interface DiscussionTopic {
   comment_count: number;
 }
 
-// 定义评论接口
 interface TopicComment {
   id: string;
   topic_id: string;
@@ -45,20 +45,16 @@ export default function DiscussionPage() {
   const [commentContent, setCommentContent] = useState('');
   const [commentError, setCommentError] = useState('');
 
-  // 获取课程信息
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
-        // 从本地存储获取 token
         const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
-          // 未登录，重定向到登录页面
           router.push('/');
           return;
         }
 
-        // 获取课程信息
         const courseResponse = await fetch(`/api/student/courses/${courseId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -72,7 +68,6 @@ export default function DiscussionPage() {
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
 
-        // 获取讨论列表
         const discussionResponse = await fetch(`/api/student/courses/${courseId}/discussions`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -93,15 +88,12 @@ export default function DiscussionPage() {
     fetchCourseDetails();
   }, [courseId, router]);
 
-  // 返回到课程列表
   const handleBack = () => {
     router.push(`/student/course/${courseId}`);
   };
 
-  // 获取评论
   const fetchComments = async (topicId: string) => {
     try {
-      // 从本地存储获取 token
       const accessToken = localStorage.getItem('accessToken');
 
       if (!accessToken) {
@@ -124,20 +116,17 @@ export default function DiscussionPage() {
     }
   };
 
-  // 切换展开/收起评论
   const toggleComments = (topicId: string) => {
     if (expandedTopic === topicId) {
       setExpandedTopic(null);
     } else {
       setExpandedTopic(topicId);
-      // 如果还没有加载过评论，加载评论
       if (!comments[topicId]) {
         fetchComments(topicId);
       }
     }
   };
 
-  // 提交评论
   const handleSubmitComment = async (topicId: string) => {
     if (!commentContent) {
       setCommentError('评论内容不能为空');
@@ -145,7 +134,6 @@ export default function DiscussionPage() {
     }
 
     try {
-      // 从本地存储获取 token
       const accessToken = localStorage.getItem('accessToken');
 
       if (!accessToken) {
@@ -167,7 +155,6 @@ export default function DiscussionPage() {
         setComments({ ...comments, [topicId]: [...(comments[topicId] || []), newComment] });
         setCommentContent('');
         setCommentError('');
-        // 更新讨论列表中的评论数
         setDiscussions(discussions.map(discussion => {
           if (discussion.id === topicId) {
             return { ...discussion, comment_count: discussion.comment_count + 1 };
@@ -201,83 +188,15 @@ export default function DiscussionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBack}
-                className="text-gray-600 hover:text-gray-900 focus:outline-none"
-              >
-                ← 返回课程详情
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">课程讨论</h1>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar title="课程讨论" onBack={handleBack} />
 
-      {/* 主要内容 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* 侧边栏 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
-              <div className="space-y-2">
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  代办界面
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/attendance`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程签到
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/chapters`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程章节
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/discussion`)}
-                  className="w-full text-left p-3 rounded-md bg-blue-50 text-blue-600 font-medium"
-                >
-                  课程讨论
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/diagnosis`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  学情诊断
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/assignments`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程作业
-                </button>
-              </div>
-            </div>
-          </div>
+          <StudentSidebar courseId={courseId} activeMenuItem="discussion" />
 
-          {/* 右侧内容 */}
           <div className="lg:col-span-3">
-            {/* 课程信息 */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="text-gray-600">课程ID: {course?.course_id}</div>
-                <div className="text-gray-600">学分: {course?.credit}</div>
-              </div>
-            </div>
+            {course && <CourseInfo course={course} />}
 
-            {/* 讨论内容 */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">讨论区</h3>
               
@@ -304,10 +223,8 @@ export default function DiscussionPage() {
                         </button>
                       </div>
 
-                      {/* 评论区域 */}
                       {expandedTopic === discussion.id && (
                         <div className="mt-4 border-t border-gray-200 pt-4">
-                          {/* 评论列表 */}
                           <div className="space-y-3 mb-4">
                             {comments[discussion.id]?.length === 0 ? (
                               <div className="text-sm text-gray-500">暂无评论</div>
@@ -324,7 +241,6 @@ export default function DiscussionPage() {
                             )}
                           </div>
 
-                          {/* 评论输入框 */}
                           <div>
                             {commentError && (
                               <div className="bg-red-50 text-red-600 text-sm p-2 rounded-md mb-2">

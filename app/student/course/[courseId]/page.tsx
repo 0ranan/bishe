@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import StudentNavbar from '@/components/student/StudentNavbar';
+import StudentSidebar from '@/components/student/StudentSidebar';
+import CourseInfo from '@/components/student/CourseInfo';
+import PendingAttendance from '@/components/student/PendingAttendance';
+import VideoList from '@/components/student/VideoList';
 
-// 定义视频接口
 interface Video {
   id: string;
   title: string;
@@ -12,14 +16,12 @@ interface Video {
   order_index: number;
 }
 
-// 定义课程接口
 interface Course {
   course_id: string;
   course_name: string;
   credit: number;
 }
 
-// 定义签到接口
 interface Attendance {
   id: string;
   title: string;
@@ -41,20 +43,16 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 获取课程信息和视频列表
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
-        // 从本地存储获取 token
         const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
-          // 未登录，重定向到登录页面
           router.push('/');
           return;
         }
 
-        // 获取课程信息
         const courseResponse = await fetch(`/api/student/courses/${courseId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -68,7 +66,6 @@ export default function CourseDetailPage() {
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
 
-        // 获取课程视频
         const videosResponse = await fetch(`/api/student/courses/${courseId}/videos`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -82,7 +79,6 @@ export default function CourseDetailPage() {
         const videosData = await videosResponse.json();
         setVideos(videosData.videos);
 
-        // 获取课程签到信息
         const attendanceResponse = await fetch(`/api/student/courses/${courseId}/attendances`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -103,7 +99,6 @@ export default function CourseDetailPage() {
     fetchCourseDetails();
   }, [courseId, router]);
 
-  // 返回到课程列表
   const handleBack = () => {
     router.push('/student');
   };
@@ -126,148 +121,18 @@ export default function CourseDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBack}
-                className="text-gray-600 hover:text-gray-900 focus:outline-none"
-              >
-                ← 返回课程列表
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">课程详情</h1>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar title="课程详情" onBack={handleBack} />
 
-      {/* 主要内容 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* 侧边栏 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
-              <div className="space-y-2">
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  代办界面
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/attendance`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程签到
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/chapters`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程章节
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/discussion`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程讨论
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/diagnosis`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  学情诊断
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/assignments`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程作业
-                </button>
-              </div>
-            </div>
-          </div>
+          <StudentSidebar courseId={courseId} activeMenuItem="dashboard" />
 
-          {/* 右侧内容 */}
           <div className="lg:col-span-3">
-            {/* 课程信息 */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="text-gray-600">课程ID: {course?.course_id}</div>
-                <div className="text-gray-600">学分: {course?.credit}</div>
-              </div>
-            </div>
+            {course && <CourseInfo course={course} />}
 
-            {/* 未签到的签到 */}
-            {attendances.filter(a => a.status === 'active' && !a.attended).length > 0 && (
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">待签到</h3>
-                <div className="space-y-4">
-                  {attendances
-                    .filter(a => a.status === 'active' && !a.attended)
-                    .map((attendance) => (
-                      <div key={attendance.id} className="p-4 border border-yellow-200 bg-yellow-50 rounded-md">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-medium text-gray-900">{attendance.title}</h4>
-                          <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded">进行中</span>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-600">
-                          <div>签到码: <span className="font-medium">{attendance.code}</span></div>
-                          <div>结束时间: {new Date(attendance.end_time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
-                        </div>
-                        <div className="mt-3">
-                          <button
-                            onClick={() => router.push(`/student/course/${courseId}/attendance`)}
-                            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
-                          >
-                            去签到
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
+            <PendingAttendance attendances={attendances} courseId={courseId} />
 
-            {/* 视频列表 */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">课程视频</h3>
-              
-              {videos.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  暂无视频
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {videos.map((video) => (
-                    <div key={video.id} className="flex items-center p-4 border border-gray-200 rounded-md hover:bg-gray-50">
-                      <div className="flex-shrink-0 w-16 h-10 bg-gray-200 rounded flex items-center justify-center mr-4">
-                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-grow">
-                        <h4 className="font-medium text-gray-900">{video.title}</h4>
-                        <div className="text-sm text-gray-500">时长: {video.duration}</div>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <button
-                          onClick={() => router.push(`/student/course/${courseId}/video/${video.id}`)}
-                          className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none"
-                        >
-                          观看视频
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <VideoList videos={videos} courseId={courseId} />
           </div>
         </div>
       </main>

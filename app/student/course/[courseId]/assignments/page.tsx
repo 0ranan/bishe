@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import StudentNavbar from '@/components/student/StudentNavbar';
+import StudentSidebar from '@/components/student/StudentSidebar';
+import CourseInfo from '@/components/student/CourseInfo';
 
-// 定义课程接口
 interface Course {
   course_id: string;
   course_name: string;
   credit: number;
 }
 
-// 定义作业主题接口
 interface AssignmentTopic {
   id: string;
   title: string;
@@ -40,20 +41,16 @@ export default function AssignmentsPage() {
   const [assignmentContent, setAssignmentContent] = useState('');
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-  // 获取课程信息和作业列表
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 从本地存储获取 token
         const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
-          // 未登录，重定向到登录页面
           router.push('/');
           return;
         }
 
-        // 获取课程信息
         const courseResponse = await fetch(`/api/student/courses/${courseId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -67,7 +64,6 @@ export default function AssignmentsPage() {
         const courseData = await courseResponse.json();
         setCourse(courseData.course);
 
-        // 获取作业列表
         const assignmentsResponse = await fetch(`/api/student/courses/${courseId}/assignments`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -90,25 +86,21 @@ export default function AssignmentsPage() {
     fetchData();
   }, [courseId, router]);
 
-  // 返回到课程列表
   const handleBack = () => {
     router.push(`/student/course/${courseId}`);
   };
 
-  // 打开作业提交模态框
   const handleOpenSubmitModal = (assignment: AssignmentTopic) => {
     setCurrentAssignment(assignment);
     setAssignmentContent('');
     setShowSubmitModal(true);
   };
 
-  // 关闭作业提交模态框
   const handleCloseSubmitModal = () => {
     setShowSubmitModal(false);
     setCurrentAssignment(null);
   };
 
-  // 提交作业
   const handleSubmitAssignment = async () => {
     if (!currentAssignment || !assignmentContent.trim()) {
       return;
@@ -117,7 +109,6 @@ export default function AssignmentsPage() {
     try {
       setSubmitting(true);
       
-      // 从本地存储获取 token
       const accessToken = localStorage.getItem('accessToken');
 
       if (!accessToken) {
@@ -141,7 +132,6 @@ export default function AssignmentsPage() {
         throw new Error('提交作业失败');
       }
 
-      // 刷新作业列表
       const assignmentsResponse = await fetch(`/api/student/courses/${courseId}/assignments`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -163,7 +153,6 @@ export default function AssignmentsPage() {
     }
   };
 
-  // 格式化时间
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString('zh-CN', {
@@ -175,7 +164,6 @@ export default function AssignmentsPage() {
     });
   };
 
-  // 检查是否已过期
   const isExpired = (endTime: string) => {
     return new Date() > new Date(endTime);
   };
@@ -198,83 +186,15 @@ export default function AssignmentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBack}
-                className="text-gray-600 hover:text-gray-900 focus:outline-none"
-              >
-                ← 返回课程详情
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">课程作业</h1>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <StudentNavbar title="课程作业" onBack={handleBack} />
 
-      {/* 主要内容 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* 侧边栏 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
-              <div className="space-y-2">
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  代办界面
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/attendance`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程签到
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/chapters`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程章节
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/discussion`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  课程讨论
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/diagnosis`)}
-                  className="w-full text-left p-3 rounded-md hover:bg-gray-100 text-gray-700"
-                >
-                  学情诊断
-                </button>
-                <button 
-                  onClick={() => router.push(`/student/course/${courseId}/assignments`)}
-                  className="w-full text-left p-3 rounded-md bg-blue-50 text-blue-600 font-medium"
-                >
-                  课程作业
-                </button>
-              </div>
-            </div>
-          </div>
+          <StudentSidebar courseId={courseId} activeMenuItem="assignments" />
 
-          {/* 右侧内容 */}
           <div className="lg:col-span-3">
-            {/* 课程信息 */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{course?.course_name}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="text-gray-600">课程ID: {course?.course_id}</div>
-                <div className="text-gray-600">学分: {course?.credit}</div>
-              </div>
-            </div>
+            {course && <CourseInfo course={course} />}
 
-            {/* 作业内容 */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">作业列表</h3>
               
@@ -330,7 +250,6 @@ export default function AssignmentsPage() {
         </div>
       </main>
 
-      {/* 作业提交模态框 */}
       {showSubmitModal && currentAssignment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
