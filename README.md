@@ -47,9 +47,13 @@ cp .env.example .env
 DATABASE_URL=postgres://vibe_user:vibe_password@localhost:5432/vibe_db
 ```
 
-### 4. 启动 Docker 容器
+### 4. 构建Docker镜像
 
-确保 Docker 已安装并运行，然后启动 PostgreSQL 容器：
+```bash
+docker-compose build
+```
+
+### 5 启动 Docker 容器
 
 ```bash
 docker-compose up -d
@@ -63,7 +67,7 @@ docker-compose up -d
 4. 在 Docker Desktop 中配置该地址
 5. 重启 Docker 服务
 
-### 5. 初始化数据库
+### 6. 初始化数据库
 
 使用新的测试脚本执行 schema.sql 文件创建所有表：
 
@@ -73,7 +77,7 @@ node script/test-db-schema.js
 
 该脚本会自动连接数据库，执行 schema.sql 文件中的所有 SQL 语句，并验证所有表是否创建成功。
 
-### 6. 启动开发服务器
+### 7. 启动开发服务器
 
 ```bash
 npm run dev
@@ -81,7 +85,7 @@ npm run dev
 
 开发服务器将运行在 `http://localhost:3000`
 
-### 7. 默认用户账户
+### 8. 默认用户账户
 
 系统初始化后提供以下默认用户账户用于测试：
 
