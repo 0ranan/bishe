@@ -16,6 +16,7 @@
     "jsonwebtoken": "^9.0.3",
     "next": "^15.0.0",
     "postgres": "^3.4.4",
+    "svg-captcha-browser": "^1.0.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {

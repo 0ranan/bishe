@@ -1,13 +1,68 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import svgCaptcha from 'svg-captcha-browser';
 
 export default function Home() {
   const [isStudent, setIsStudent] = useState(true);
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaText, setCaptchaText] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // 加载字体并生成验证码
+  useEffect(() => {
+    const loadFontAndGenerateCaptcha = async () => {
+      try {
+        // 加载字体
+        await svgCaptcha.loadFont('/fonts/Comismsh.ttf');
+        // 生成验证码
+        generateCaptcha();
+      } catch (e) {
+        console.error('加载字体出错:', e);
+        // 即使字体加载失败，也生成验证码（使用默认字体）
+        generateCaptcha();
+      }
+    };
+
+    loadFontAndGenerateCaptcha();
+  }, []);
+
+  // 生成新的验证码
+  const generateCaptcha = () => {
+    try {
+      const newCaptcha = svgCaptcha.create({
+        size: 4,
+        ignoreChars: '0o1i',
+        noise: 1,
+        color: true,
+        background: '#f5f5f5'
+      });
+      setCaptchaSvg(newCaptcha.data);
+      setCaptchaText(newCaptcha.text);
+      setCaptchaInput('');
+    } catch (e) {
+      console.error('生成验证码出错:', e);
+      // 生成一个简单的验证码文本
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+      let text = '';
+      for (let i = 0; i < 4; i++) {
+        text += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      setCaptchaText(text);
+      setCaptchaInput('');
+      // 创建一个简单的 SVG 验证码
+      const svg = `<svg width="100" height="40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="40" fill="#f5f5f5"/>
+        <text x="10" y="25" font-family="Arial" font-size="20" fill="#333">${text}</text>
+        <line x1="0" y1="${Math.random() * 40}" x2="100" y2="${Math.random() * 40}" stroke="#ccc" stroke-width="1"/>
+      </svg>`;
+      setCaptchaSvg(svg);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +75,17 @@ export default function Home() {
     
     if (!password.trim()) {
       setError('请输入密码');
+      return;
+    }
+    
+    if (!captchaInput.trim()) {
+      setError('请输入验证码');
+      return;
+    }
+    
+    if (captchaInput.toLowerCase() !== captchaText.toLowerCase()) {
+      setError('验证码错误');
+      generateCaptcha();
       return;
     }
 
@@ -121,6 +187,29 @@ export default function Home() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="请输入密码"
               />
+            </div>
+            <div>
+              <label htmlFor="captcha" className="block text-sm font-medium text-gray-700 mb-1">
+                验证码
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  id="captcha"
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="请输入验证码"
+                />
+                <div className="flex items-center">
+                  <div
+                    dangerouslySetInnerHTML={{ __html: captchaSvg }}
+                    className="cursor-pointer"
+                    onClick={generateCaptcha}
+                    title="点击刷新验证码"
+                  />
+                </div>
+              </div>
             </div>
             <button
               type="submit"
