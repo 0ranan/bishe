@@ -246,3 +246,31 @@ CREATE TABLE IF NOT EXISTS assignments (
     FOREIGN KEY (assignment_topic_id) REFERENCES assignment_topics(id) ON DELETE CASCADE, -- 外键关联作业主题表
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE -- 外键关联学生表
 );
+
+-- 创建AI助教文件表
+-- 用于存储教师上传的教学资源文件
+CREATE TABLE IF NOT EXISTS ai_teaching_assistant_files (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- 主键ID
+    teacher_id UUID NOT NULL, -- 上传教师ID
+    course_id UUID NOT NULL, -- 课程ID
+    file_name VARCHAR(255) NOT NULL, -- 文件名
+    file_path TEXT NOT NULL, -- 文件存储路径
+    file_type VARCHAR(50) NOT NULL, -- 文件类型（pdf、txt、md等）
+    file_size BIGINT NOT NULL, -- 文件大小（字节）
+    content TEXT, -- 文件内容（用于向量生成）
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE, -- 外键关联教师表
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE -- 外键关联课程表
+);
+
+-- 创建AI助教向量表
+-- 用于存储文件内容的向量表示
+CREATE TABLE IF NOT EXISTS ai_teaching_assistant_embeddings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- 主键ID
+    file_id UUID NOT NULL, -- 关联的文件ID
+    chunk_id VARCHAR(100) NOT NULL, -- 文本块ID
+    content TEXT NOT NULL, -- 文本块内容
+    embedding JSONB NOT NULL, -- 向量表示（JSON格式）
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间
+    FOREIGN KEY (file_id) REFERENCES ai_teaching_assistant_files(id) ON DELETE CASCADE -- 外键关联文件表
+);

@@ -18,6 +18,7 @@ export default function TeacherSidebar({ courseId, activeMenuItem }: TeacherSide
     { key: 'discussion', label: '课程讨论', path: `/teacher/course/${courseId}/discussion` },
     { key: 'diagnosis', label: '学情诊断', path: `/teacher/course/${courseId}/diagnosis` },
     { key: 'assignments', label: '课程作业', path: `/teacher/course/${courseId}/assignments` },
+    { key: 'ai-assistant', label: 'AI助教', path: `/teacher/course/${courseId}/ai-assistant` },
   ];
 
   return (

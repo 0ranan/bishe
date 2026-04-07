@@ -19,6 +19,7 @@ export default function StudentSidebar({ courseId, activeMenuItem }: StudentSide
     { key: 'discussion', label: '课程讨论', path: `/student/course/${courseId}/discussion` },
     { key: 'diagnosis', label: '学情诊断', path: `/student/course/${courseId}/diagnosis` },
     { key: 'assignments', label: '课程作业', path: `/student/course/${courseId}/assignments` },
+    { key: 'ai-assistant', label: 'AI助教', path: `/student/course/${courseId}/ai-assistant` },
   ];
 
   return (
