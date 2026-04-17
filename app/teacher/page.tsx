@@ -198,6 +198,12 @@ export default function TeacherPage() {
               <h1 className="text-xl font-semibold text-gray-900">教师中心</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push('/teacher/profile')}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                个人中心
+              </button>
               <span className="text-gray-700">欢迎，{user?.name}</span>
               <button
                 onClick={handleLogout}
@@ -231,6 +237,14 @@ export default function TeacherPage() {
                   className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
                 >
                   我的班级
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => router.push('/teacher/profile')}
+                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
+                >
+                  个人中心
                 </button>
               </li>
               {user?.role === 'admin' && (

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
+
 
 // 定义课程接口
 interface Course {
@@ -112,6 +112,12 @@ export default function StudentPage() {
               <h1 className="text-xl font-semibold text-gray-900">学生中心</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push('/student/profile')}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                个人中心
+              </button>
               <span className="text-gray-700">欢迎，{user?.name}</span>
               <button
                 onClick={handleLogout}

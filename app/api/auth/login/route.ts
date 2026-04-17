@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { generateAccessToken, generateRefreshToken, UserType } from '@/lib/auth';
+import { generateAccessToken, generateRefreshToken, UserType, verifyPassword } from '@/lib/auth';
 
 // 定义登录请求体接口
 interface LoginRequest {
@@ -71,8 +71,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证密码（注意：实际项目中应该使用 bcrypt 等算法加密存储密码）
-    if (user.password !== password) {
+    // 验证密码（复用工具：verifyPassword）
+    let passwordValid = false;
+    try {
+      passwordValid = await verifyPassword(password, user.password);
+    } catch {
+      // 如果 bcrypt 验证失败（可能是明文密码），尝试直接比较（兼容现有数据）
+      passwordValid = user.password === password;
+    }
+
+    if (!passwordValid) {
       return NextResponse.json(
         { error: '密码错误' },
         { status: 401 }

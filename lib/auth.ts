@@ -1,5 +1,6 @@
 // 导入必要的库
 import { sign, verify, JwtPayload } from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 // 从环境变量获取密钥
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -105,4 +106,24 @@ export function extractTokenFromHeader(authorization: string | null): string | n
   if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
   
   return parts[1];
+}
+
+/**
+ * 加密密码
+ * @param password 明文密码
+ * @returns 加密后的密码哈希
+ */
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return bcrypt.hash(password, saltRounds);
+}
+
+/**
+ * 验证密码
+ * @param password 明文密码
+ * @param hash 密码哈希
+ * @returns 密码是否匹配
+ */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
 }
