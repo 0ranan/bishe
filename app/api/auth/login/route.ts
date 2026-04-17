@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let user: any;
+    let user: { id: string; student_id?: string; teacher_id?: string; name: string; password: string; role?: string } | null = null;
 
     // 根据用户类型查询数据库
     if (type === 'student') {

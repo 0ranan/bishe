@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const { decoded } = authResult;
 
-    let userInfo: any;
+    let userInfo: Record<string, unknown>;
 
     // 根据用户类型查询详细信息
     if (decoded.type === 'student') {
