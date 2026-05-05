@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import AIAssistantFloat from '@/components/AIAssistantFloat';
 
 // 定义评价接口
 interface Comment {
@@ -251,6 +252,9 @@ export default function VideoPlayerPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* AI助手悬浮球 */}
+      <AIAssistantFloat courseId={courseId} />
+      
       {/* 顶部导航栏 */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
