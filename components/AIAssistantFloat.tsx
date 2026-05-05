@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { marked } from 'marked';
 
 interface Message {
   id: string;
@@ -13,6 +14,20 @@ interface AIAssistantFloatProps {
   courseId: string;
 }
 
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  const renderedContent = marked(content, {
+    gfm: true,
+    breaks: true,
+  });
+  
+  return (
+    <div 
+      className="markdown-content"
+      dangerouslySetInnerHTML={{ __html: renderedContent }}
+    />
+  );
+};
+
 export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -20,7 +35,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 自动滚动到底部
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -30,7 +44,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    // 添加用户消息
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage,
@@ -42,7 +55,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
     setInputMessage('');
     setIsTyping(true);
 
-    // 添加空的AI消息用于流式更新
     const aiMessageId = (Date.now() + 1).toString();
     const initialAiMessage: Message = {
       id: aiMessageId,
@@ -92,7 +104,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
         );
       }
     } catch {
-      // 添加错误消息
       setMessages(prevMessages => 
         prevMessages.map(msg => 
           msg.id === aiMessageId 
@@ -107,10 +118,8 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* 聊天窗口 */}
       {isOpen && (
         <div className="mb-4 w-96 h-[500px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col">
-          {/* 头部 */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-t-xl flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -133,7 +142,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
             </button>
           </div>
 
-          {/* 消息区域 */}
           <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
             {messages.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -156,7 +164,11 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
                         ? 'bg-blue-600 text-white rounded-br-sm' 
                         : 'bg-white text-gray-800 rounded-bl-sm border border-gray-200'
                     }`}>
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      {message.type === 'ai' ? (
+                        <MarkdownRenderer content={message.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      )}
                     </div>
                     <div className={`text-xs text-gray-400 mt-1 ${message.type === 'user' ? 'text-right' : 'text-left'}`}>
                       {message.timestamp.toLocaleTimeString()}
@@ -179,7 +191,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 输入区域 */}
           <div className="p-4 border-t border-gray-200 bg-white rounded-b-xl">
             <div className="flex space-x-2">
               <input
@@ -204,7 +215,6 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
         </div>
       )}
 
-      {/* 悬浮球按钮 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
