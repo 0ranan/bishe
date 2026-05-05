@@ -54,17 +54,16 @@ services:
       - postgres
     restart: unless-stopped
 
-  chroma:
-    build:
-      context: ./chroma
-      dockerfile: Dockerfile
-    container_name: vibe_chroma
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: vibe_qdrant
     ports:
-      - "8000:8000"
+      - "6333:6333"
+      - "6334:6334"
     volumes:
-      - chroma_data:/app/chroma
+      - qdrant_data:/qdrant/storage
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  chroma_data:
+  qdrant_data:
