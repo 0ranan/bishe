@@ -14,7 +14,7 @@
  *                 type: object
  *                 properties:
  *                   id:
-                    type: string
+ *                     type: string
  *                   title:
  *                     type: string
  *                   completed:
@@ -44,7 +44,7 @@
  *               type: object
  *               properties:
  *                 id:
-                     type: string
+ *                   type: string
  *                 title:
  *                   type: string
  *                 completed:
