@@ -3,10 +3,11 @@ import { NextResponse } from 'next/server';
 export function GET() {
   const html = `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>Swagger UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API 文档 — Swagger UI</title>
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.32.0/swagger-ui.css" />
   <style>
     html {
@@ -33,6 +34,10 @@ export function GET() {
         url: '/api/swagger',
         dom_id: '#swagger-ui',
         deepLinking: true,
+        docExpansion: 'list',
+        filter: true,
+        persistAuthorization: true,
+        tryItOutEnabled: true,
         presets: [
           SwaggerUIBundle.presets.apis,
           SwaggerUIStandalonePreset
@@ -40,7 +45,7 @@ export function GET() {
         plugins: [
           SwaggerUIBundle.plugins.DownloadUrl
         ],
-        layout: "StandaloneLayout"
+        layout: 'StandaloneLayout'
       })
       window.ui = ui
     }
