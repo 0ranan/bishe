@@ -1,6 +1,4 @@
-# Vibe Todo 项目
-
-一个使用 Next.js 15+ 和原生 SQL 构建的 Todo 应用，不依赖任何 ORM。
+# 基于机器学习的学情诊断系统
 
 ## 技术栈
 
@@ -63,7 +61,7 @@ docker-compose up -d
 
 1. 登录阿里云容器镜像服务控制台
 2. 进入"镜像加速器"页面
-3. 复制加速器地址（如 https://xxxx.mirror.aliyuncs.com）
+3. 复制加速器地址（如 <https://xxxx.mirror.aliyuncs.com）>
 4. 在 Docker Desktop 中配置该地址
 5. 重启 Docker 服务
 
@@ -90,6 +88,7 @@ npm run dev
 系统初始化后提供以下默认用户账户用于测试：
 
 #### 管理员账户（可添加其他教师）
+
 - **用户类型**：教师
 - **工号**：`ADMIN001`
 - **密码**：`admin123`
@@ -100,6 +99,7 @@ npm run dev
   - 可以设置教师角色（普通教师或管理员）
 
 #### 普通教师账户
+
 - **用户类型**：教师
 - **工号**：`T001`
 - **密码**：`teacher123`
@@ -110,6 +110,7 @@ npm run dev
   - 无法访问教师管理页面
 
 #### 学生账户
+
 - **用户类型**：学生
 - **学号**：`2023001` 至 `2023010`
 - **密码**：`student123`
@@ -198,62 +199,68 @@ node test-db.js
 本项目使用 UUID 作为所有表的主键，以下是详细的表结构：
 
 ### 1. todos 表
-| 字段名 | 数据类型 | 约束 | 描述 |
-|-------|---------|------|------|
-| id | UUID | PRIMARY KEY | 任务ID |
-| title | TEXT | NOT NULL | 任务标题 |
-| completed | BOOLEAN | DEFAULT false | 是否完成 |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+| 字段名         | 数据类型      | 约束                         | 描述   |
+| ----------- | --------- | -------------------------- | ---- |
+| id          | UUID      | PRIMARY KEY                | 任务ID |
+| title       | TEXT      | NOT NULL                   | 任务标题 |
+| completed   | BOOLEAN   | DEFAULT false              | 是否完成 |
+| created\_at | TIMESTAMP | DEFAULT CURRENT\_TIMESTAMP | 创建时间 |
 
 ### 2. students 表
-| 字段名 | 数据类型 | 约束 | 描述 |
-|-------|---------|------|------|
-| id | UUID | PRIMARY KEY | 学生主键ID |
-| student_id | VARCHAR(20) | NOT NULL UNIQUE | 学号 |
-| password | VARCHAR(255) | NOT NULL | 密码 |
-| name | VARCHAR(50) | NOT NULL | 学生姓名 |
-| grade | VARCHAR(20) | | 年级 |
-| major | VARCHAR(100) | | 专业 |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+| 字段名         | 数据类型         | 约束                         | 描述     |
+| ----------- | ------------ | -------------------------- | ------ |
+| id          | UUID         | PRIMARY KEY                | 学生主键ID |
+| student\_id | VARCHAR(20)  | NOT NULL UNIQUE            | 学号     |
+| password    | VARCHAR(255) | NOT NULL                   | 密码     |
+| name        | VARCHAR(50)  | NOT NULL                   | 学生姓名   |
+| grade       | VARCHAR(20)  | <br />                     | 年级     |
+| major       | VARCHAR(100) | <br />                     | 专业     |
+| created\_at | TIMESTAMP    | DEFAULT CURRENT\_TIMESTAMP | 创建时间   |
 
 ### 3. teachers 表
-| 字段名 | 数据类型 | 约束 | 描述 |
-|-------|---------|------|------|
-| id | UUID | PRIMARY KEY | 教师主键ID |
-| teacher_id | VARCHAR(20) | NOT NULL UNIQUE | 工号 |
-| password | VARCHAR(255) | NOT NULL | 密码 |
-| name | VARCHAR(50) | NOT NULL | 教师姓名 |
-| department | VARCHAR(100) | | 部门 |
-| title | VARCHAR(50) | | 职称 |
-| role | VARCHAR(20) | DEFAULT 'teacher' | 角色：teacher(普通教师)或admin(管理员) |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+| 字段名         | 数据类型         | 约束                         | 描述                          |
+| ----------- | ------------ | -------------------------- | --------------------------- |
+| id          | UUID         | PRIMARY KEY                | 教师主键ID                      |
+| teacher\_id | VARCHAR(20)  | NOT NULL UNIQUE            | 工号                          |
+| password    | VARCHAR(255) | NOT NULL                   | 密码                          |
+| name        | VARCHAR(50)  | NOT NULL                   | 教师姓名                        |
+| department  | VARCHAR(100) | <br />                     | 部门                          |
+| title       | VARCHAR(50)  | <br />                     | 职称                          |
+| role        | VARCHAR(20)  | DEFAULT 'teacher'          | 角色：teacher(普通教师)或admin(管理员) |
+| created\_at | TIMESTAMP    | DEFAULT CURRENT\_TIMESTAMP | 创建时间                        |
 
 ### 4. classes 表
-| 字段名 | 数据类型 | 约束 | 描述 |
-|-------|---------|------|------|
-| id | UUID | PRIMARY KEY | 班级主键ID |
-| class_id | VARCHAR(20) | NOT NULL UNIQUE | 班级ID |
-| class_name | VARCHAR(100) | NOT NULL | 班级名称 |
-| grade | VARCHAR(20) | | 年级 |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 
-### 5. student_class 表（学生与班级的多对多关系）
-| 字段名 | 数据类型 | 约束 | 描述 |
-|-------|---------|------|------|
-| id | UUID | PRIMARY KEY | 关联ID |
-| student_id | UUID | NOT NULL, FOREIGN KEY | 学生ID |
-| class_id | UUID | NOT NULL, FOREIGN KEY | 班级ID |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| UNIQUE | (student_id, class_id) | | 确保学生和班级的组合唯一 |
+| 字段名         | 数据类型         | 约束                         | 描述     |
+| ----------- | ------------ | -------------------------- | ------ |
+| id          | UUID         | PRIMARY KEY                | 班级主键ID |
+| class\_id   | VARCHAR(20)  | NOT NULL UNIQUE            | 班级ID   |
+| class\_name | VARCHAR(100) | NOT NULL                   | 班级名称   |
+| grade       | VARCHAR(20)  | <br />                     | 年级     |
+| created\_at | TIMESTAMP    | DEFAULT CURRENT\_TIMESTAMP | 创建时间   |
 
-### 6. teacher_class 表（教师与班级的多对多关系）
-| 字段名 | 数据类型 | 约束 | 描述 |
-|-------|---------|------|------|
-| id | UUID | PRIMARY KEY | 关联ID |
-| teacher_id | UUID | NOT NULL, FOREIGN KEY | 教师ID |
-| class_id | UUID | NOT NULL, FOREIGN KEY | 班级ID |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
-| UNIQUE | (teacher_id, class_id) | | 确保教师和班级的组合唯一 |
+### 5. student\_class 表（学生与班级的多对多关系）
+
+| 字段名         | 数据类型                     | 约束                         | 描述           |
+| ----------- | ------------------------ | -------------------------- | ------------ |
+| id          | UUID                     | PRIMARY KEY                | 关联ID         |
+| student\_id | UUID                     | NOT NULL, FOREIGN KEY      | 学生ID         |
+| class\_id   | UUID                     | NOT NULL, FOREIGN KEY      | 班级ID         |
+| created\_at | TIMESTAMP                | DEFAULT CURRENT\_TIMESTAMP | 创建时间         |
+| UNIQUE      | (student\_id, class\_id) | <br />                     | 确保学生和班级的组合唯一 |
+
+### 6. teacher\_class 表（教师与班级的多对多关系）
+
+| 字段名         | 数据类型                     | 约束                         | 描述           |
+| ----------- | ------------------------ | -------------------------- | ------------ |
+| id          | UUID                     | PRIMARY KEY                | 关联ID         |
+| teacher\_id | UUID                     | NOT NULL, FOREIGN KEY      | 教师ID         |
+| class\_id   | UUID                     | NOT NULL, FOREIGN KEY      | 班级ID         |
+| created\_at | TIMESTAMP                | DEFAULT CURRENT\_TIMESTAMP | 创建时间         |
+| UNIQUE      | (teacher\_id, class\_id) | <br />                     | 确保教师和班级的组合唯一 |
 
 ## 常见问题排查
 
@@ -291,3 +298,4 @@ node test-db.js
 ```bash
 docker-compose down
 ```
+
