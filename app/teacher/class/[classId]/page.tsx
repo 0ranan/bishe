@@ -45,6 +45,10 @@ export default function TeacherClassDetailPage() {
   // 添加学生相关状态
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [newStudentId, setNewStudentId] = useState('');
+  const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentPassword, setNewStudentPassword] = useState('');
+  const [newStudentGrade, setNewStudentGrade] = useState('');
+  const [newStudentMajor, setNewStudentMajor] = useState('');
   
   // 批量导入学生相关状态
   const [showBatchImport, setShowBatchImport] = useState(false);
@@ -169,7 +173,18 @@ export default function TeacherClassDetailPage() {
   const handleAddStudent = async () => {
     try {
       const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken || !newStudentId) return;
+      const sid = newStudentId.trim();
+      if (!accessToken || !sid) return;
+
+      const payload: Record<string, string> = { student_id: sid };
+      const nameTrim = newStudentName.trim();
+      const passTrim = newStudentPassword.trim();
+      const gradeTrim = newStudentGrade.trim();
+      const majorTrim = newStudentMajor.trim();
+      if (nameTrim) payload.name = nameTrim;
+      if (passTrim) payload.password = passTrim;
+      if (gradeTrim) payload.grade = gradeTrim;
+      if (majorTrim) payload.major = majorTrim;
 
       const response = await fetch(`/api/teacher/classes/${classId}/students`, {
         method: 'POST',
@@ -177,13 +192,13 @@ export default function TeacherClassDetailPage() {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          student_id: newStudentId,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error('添加学生失败');
+        throw new Error(typeof result.error === 'string' ? result.error : '添加学生失败');
       }
 
       // 重新获取学生列表
@@ -207,8 +222,16 @@ export default function TeacherClassDetailPage() {
       setCls(classData.class);
 
       setNewStudentId('');
+      setNewStudentName('');
+      setNewStudentPassword('');
+      setNewStudentGrade('');
+      setNewStudentMajor('');
       setShowAddStudent(false);
-      setMessage('学生添加成功');
+      setMessage(
+        result.created
+          ? '学生添加成功（已新建学生账号，默认密码为学号）'
+          : '学生添加成功'
+      );
       setMessageType('success');
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
@@ -643,6 +666,9 @@ export default function TeacherClassDetailPage() {
             {showAddStudent && (
               <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
                 <h4 className="text-lg font-medium text-gray-900 mb-3">添加学生</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  若学号尚不存在，将自动创建学生账号；姓名未填时显示为学号，密码未填时默认为学号。
+                </p>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">学号</label>
@@ -653,6 +679,46 @@ export default function TeacherClassDetailPage() {
                       placeholder="请输入学生学号"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">姓名（可选）</label>
+                    <input
+                      type="text"
+                      value={newStudentName}
+                      onChange={(e) => setNewStudentName(e.target.value)}
+                      placeholder="未填则使用学号作为姓名"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">密码（可选）</label>
+                    <input
+                      type="text"
+                      value={newStudentPassword}
+                      onChange={(e) => setNewStudentPassword(e.target.value)}
+                      placeholder="未填则默认与学号相同"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">年级（可选）</label>
+                      <input
+                        type="text"
+                        value={newStudentGrade}
+                        onChange={(e) => setNewStudentGrade(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">专业（可选）</label>
+                      <input
+                        type="text"
+                        value={newStudentMajor}
+                        onChange={(e) => setNewStudentMajor(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                   <button
                     onClick={handleAddStudent}

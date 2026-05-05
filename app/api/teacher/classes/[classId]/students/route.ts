@@ -70,7 +70,7 @@ export async function POST(request: NextRequest, { params }: { params: { classId
 
     // 解析请求体
     const body = await request.json();
-    const { student_id } = body;
+    const { student_id, name, password, grade, major } = body;
 
     if (!student_id) {
       return NextResponse.json(
@@ -97,26 +97,33 @@ export async function POST(request: NextRequest, { params }: { params: { classId
 
     const classRecord = teacherClasses[0];
 
-    // 检查学生是否存在
-    const student = await sql`
+    const studentRow = await sql`
       SELECT id FROM students WHERE student_id = ${student_id}
     `;
 
-    if (student.length === 0) {
-      return NextResponse.json(
-        { error: '学生不存在' },
-        { status: 404 }
-      );
+    let studentId: string;
+    let studentCreated = false;
+
+    if (studentRow.length > 0) {
+      studentId = studentRow[0].id;
+    } else {
+      const pwd = password || student_id;
+      const displayName = name || student_id;
+      const inserted = await sql`
+        INSERT INTO students (student_id, password, name, grade, major)
+        VALUES (${student_id}, ${pwd}, ${displayName}, ${grade || null}, ${major || null})
+        RETURNING id
+      `;
+      studentId = inserted[0].id;
+      studentCreated = true;
     }
 
-    const studentId = student[0].id;
-
     // 检查学生是否已经在该班级
-    const existingStudent = await sql`
+    const existingRelation = await sql`
       SELECT * FROM student_class WHERE class_id = ${classRecord.id} AND student_id = ${studentId}
     `;
 
-    if (existingStudent.length > 0) {
+    if (existingRelation.length > 0) {
       return NextResponse.json(
         { error: '学生已经在该班级中' },
         { status: 400 }
@@ -132,7 +139,8 @@ export async function POST(request: NextRequest, { params }: { params: { classId
     // 返回成功响应
     const response = NextResponse.json({
       success: true,
-      message: '学生添加成功'
+      message: '学生添加成功',
+      created: studentCreated,
     });
 
     // 如果有新的 token，添加到响应头
