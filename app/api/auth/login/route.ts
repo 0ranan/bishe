@@ -73,10 +73,17 @@ export async function POST(request: NextRequest) {
 
     // 验证密码（复用工具：verifyPassword）
     let passwordValid = false;
-    try {
+    
+    // 判断密码是否为 bcrypt 哈希格式（bcrypt 哈希以 $2b$、$2a$ 或 $2y$ 开头）
+    const isBcryptHash = user.password.startsWith('$2b$') || 
+                         user.password.startsWith('$2a$') || 
+                         user.password.startsWith('$2y$');
+    
+    if (isBcryptHash) {
+      // 使用 bcrypt 验证
       passwordValid = await verifyPassword(password, user.password);
-    } catch {
-      // 如果 bcrypt 验证失败（可能是明文密码），尝试直接比较（兼容现有数据）
+    } else {
+      // 明文密码，直接比较（兼容现有数据）
       passwordValid = user.password === password;
     }
 
