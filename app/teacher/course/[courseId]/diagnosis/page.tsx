@@ -751,6 +751,17 @@ export default function TeacherCourseDiagnosisPage() {
           )}
         </div>
       </div>
+
+      <button
+        onClick={() => router.push(`/teacher/course/${courseId}/diagnosis/bigscreen`)}
+        className="fixed bottom-8 right-8 flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-slate-800 to-cyan-600 hover:from-slate-700 hover:to-cyan-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
+        style={{ boxShadow: '0 4px 20px rgba(6, 182, 212, 0.3)' }}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        </svg>
+        <span className="font-medium">学情诊断大屏</span>
+      </button>
     </div>
   );
 }

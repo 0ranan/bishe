@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { marked } from 'marked';
 import StudentNavbar from '@/components/student/StudentNavbar';
 import StudentSidebar from '@/components/student/StudentSidebar';
 import CourseInfo from '@/components/student/CourseInfo';
@@ -19,6 +20,20 @@ interface Course {
   credit: number;
 }
 
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  const renderedContent = marked(content, {
+    gfm: true,
+    breaks: true,
+  });
+  
+  return (
+    <div 
+      className="markdown-content"
+      dangerouslySetInnerHTML={{ __html: renderedContent }}
+    />
+  );
+};
+
 export default function StudentAIAssistantPage() {
   const params = useParams();
   const router = useRouter();
@@ -30,6 +45,13 @@ export default function StudentAIAssistantPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isTyping]);
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
@@ -70,7 +92,6 @@ export default function StudentAIAssistantPage() {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    // 添加用户消息
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage,
@@ -82,7 +103,6 @@ export default function StudentAIAssistantPage() {
     setInputMessage('');
     setIsTyping(true);
 
-    // 添加空的AI消息用于流式更新
     const aiMessageId = (Date.now() + 1).toString();
     const initialAiMessage: Message = {
       id: aiMessageId,
@@ -132,7 +152,6 @@ export default function StudentAIAssistantPage() {
         );
       }
     } catch {
-      // 添加错误消息
       setMessages(prevMessages => 
         prevMessages.map(msg => 
           msg.id === aiMessageId 
@@ -187,7 +206,11 @@ export default function StudentAIAssistantPage() {
                       className={`mb-4 ${message.type === 'user' ? 'text-right' : 'text-left'}`}
                     >
                       <div className={`inline-block max-w-[80%] p-3 rounded-lg ${message.type === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {message.content}
+                        {message.type === 'ai' ? (
+                          <MarkdownRenderer content={message.content} />
+                        ) : (
+                          <span className="whitespace-pre-wrap">{message.content}</span>
+                        )}
                       </div>
                       <div className={`text-xs text-gray-500 mt-1 ${message.type === 'user' ? 'text-right' : 'text-left'}`}>
                         {message.timestamp.toLocaleTimeString()}
@@ -206,6 +229,7 @@ export default function StudentAIAssistantPage() {
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="flex space-x-2">
