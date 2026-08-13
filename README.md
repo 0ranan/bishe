@@ -130,30 +130,19 @@ npm run dev
   - 测试 API 接口
   - 查看请求和响应格式
 
-### API 端点
+### API 端点（学情诊断相关）
 
-- **GET /api/todos** - 获取所有 todo 列表
-- **POST /api/todos** - 创建新的 todo
+- **GET /api/student/courses/{courseId}/diagnosis** - 学生学情诊断（须登录学生；成绩预测走 Python gRPC，服务不可用返回 503）
+- **GET /api/teacher/courses/{courseId}/diagnosis** - 教师课程学情诊断（须登录且拥有该课程；同上）
+- **POST /api/auth/login** - 登录获取 JWT
+
+启动学情预测服务（Docker Compose 中的 `python` 服务，默认端口 `50051`），并在 `.env` 配置 `GRPC_STUDENT_ANALYSIS_URL`。
 
 ## 测试方法
 
 ### 运行 API 测试
 
-#### 使用前端测试页面
-
-启动开发服务器后，访问 `http://localhost:3000` 即可使用前端测试页面，该页面提供了直观的界面来测试 Todo API：
-
-- **创建 Todo**：在表单中输入标题，选择是否完成，然后点击 "创建 Todo" 按钮
-- **查看 Todo 列表**：页面会自动加载所有 Todo，并按创建时间倒序排列
-- **刷新列表**：点击 "刷新列表" 按钮可以手动刷新 Todo 列表
-
-#### 使用脚本测试
-
-使用 `test-api.js` 脚本测试 API 接口：
-
-```bash
-node test-api.js
-```
+使用 Swagger UI（`http://localhost:3000/api/swagger-ui`）或登录后访问学生/教师端学情诊断页面进行验证。
 
 ### 运行数据库测试
 
@@ -168,8 +157,9 @@ node test-db.js
 ```
 ├── app/
 │   └── api/
-│       ├── todos/
-│       │   └── route.ts     # Todo API 路由
+│       ├── auth/            # 登录与刷新
+│       ├── student/         # 学生端 API（含 diagnosis）
+│       ├── teacher/         # 教师端 API（含 diagnosis）
 │       ├── swagger/
 │       │   └── route.ts     # Swagger 规范生成接口
 │       └── swagger-ui/
@@ -179,7 +169,11 @@ node test-db.js
 │   ├── init.sql             # 数据库初始化脚本
 │   └── schema.sql           # 数据库表结构定义
 ├── lib/
+│   ├── diagnosis.ts         # 学情聚合与编排
+│   ├── grpc-prediction.ts   # gRPC 成绩预测客户端（无规则降级）
+│   ├── course-access.ts     # 课程归属校验
 │   └── validators.ts        # Zod Schema 定义
+├── python/                  # 学情预测 gRPC 服务
 ├── script/
 │   └── test-db-schema.js    # 数据库结构测试脚本
 ├── tests/
@@ -198,16 +192,7 @@ node test-db.js
 
 本项目使用 UUID 作为所有表的主键，以下是详细的表结构：
 
-### 1. todos 表
-
-| 字段名         | 数据类型      | 约束                         | 描述   |
-| ----------- | --------- | -------------------------- | ---- |
-| id          | UUID      | PRIMARY KEY                | 任务ID |
-| title       | TEXT      | NOT NULL                   | 任务标题 |
-| completed   | BOOLEAN   | DEFAULT false              | 是否完成 |
-| created\_at | TIMESTAMP | DEFAULT CURRENT\_TIMESTAMP | 创建时间 |
-
-### 2. students 表
+### 1. students 表
 
 | 字段名         | 数据类型         | 约束                         | 描述     |
 | ----------- | ------------ | -------------------------- | ------ |
@@ -219,7 +204,7 @@ node test-db.js
 | major       | VARCHAR(100) | <br />                     | 专业     |
 | created\_at | TIMESTAMP    | DEFAULT CURRENT\_TIMESTAMP | 创建时间   |
 
-### 3. teachers 表
+### 2. teachers 表
 
 | 字段名         | 数据类型         | 约束                         | 描述                          |
 | ----------- | ------------ | -------------------------- | --------------------------- |
@@ -232,7 +217,7 @@ node test-db.js
 | role        | VARCHAR(20)  | DEFAULT 'teacher'          | 角色：teacher(普通教师)或admin(管理员) |
 | created\_at | TIMESTAMP    | DEFAULT CURRENT\_TIMESTAMP | 创建时间                        |
 
-### 4. classes 表
+### 3. classes 表
 
 | 字段名         | 数据类型         | 约束                         | 描述     |
 | ----------- | ------------ | -------------------------- | ------ |
@@ -242,7 +227,7 @@ node test-db.js
 | grade       | VARCHAR(20)  | <br />                     | 年级     |
 | created\_at | TIMESTAMP    | DEFAULT CURRENT\_TIMESTAMP | 创建时间   |
 
-### 5. student\_class 表（学生与班级的多对多关系）
+### 4. student\_class 表（学生与班级的多对多关系）
 
 | 字段名         | 数据类型                     | 约束                         | 描述           |
 | ----------- | ------------------------ | -------------------------- | ------------ |
@@ -252,7 +237,7 @@ node test-db.js
 | created\_at | TIMESTAMP                | DEFAULT CURRENT\_TIMESTAMP | 创建时间         |
 | UNIQUE      | (student\_id, class\_id) | <br />                     | 确保学生和班级的组合唯一 |
 
-### 6. teacher\_class 表（教师与班级的多对多关系）
+### 5. teacher\_class 表（教师与班级的多对多关系）
 
 | 字段名         | 数据类型                     | 约束                         | 描述           |
 | ----------- | ------------------------ | -------------------------- | ------------ |

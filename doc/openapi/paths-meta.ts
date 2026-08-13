@@ -1,5 +1,5 @@
 /**
- * OpenAPI 文档入口与示例接口
+ * OpenAPI 文档入口
  *
  * @swagger
  * /api/swagger:
@@ -27,41 +27,5 @@
  *           text/html:
  *             schema:
  *               type: string
- *
- * /api/todos:
- *   get:
- *     tags: [示例]
- *     summary: 获取 Todo 列表
- *     description: 演示用，无需登录。
- *     responses:
- *       200:
- *         description: 成功
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *       500:
- *         description: 服务器错误
- *   post:
- *     tags: [示例]
- *     summary: 创建 Todo
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               completed:
- *                 type: boolean
- *     responses:
- *       201:
- *         description: 已创建
- *       500:
- *         description: 服务器错误
  */
 export {};

@@ -3,13 +3,6 @@
 ```mermaid
 erDiagram
     %% 基础表
-    todos {
-        UUID id PK
-        TEXT title
-        BOOLEAN completed
-        TIMESTAMP created_at
-    }
-
     students {
         UUID id PK
         VARCHAR student_id UK

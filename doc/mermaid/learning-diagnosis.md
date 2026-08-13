@@ -64,9 +64,10 @@ flowchart LR
     ScoreCalculation-->|计算结果|SuggestionGenerator
     SuggestionGenerator-->|生成建议|GradePrediction
     
-    GradePrediction-->|可选调用|PythonGRPC
+    GradePrediction-->|必须调用|PythonGRPC
     PythonGRPC-->|预测结果|ModelInference
     ModelInference-->|返回等级|GradePrediction
+    PythonGRPC-->|失败|Err503[API返回503]
     
     TeacherDiagnosisAPI-->|返回JSON|TeacherDiagnosis
     StudentDiagnosisAPI-->|返回JSON|StudentDiagnosis
@@ -94,19 +95,16 @@ flowchart TD
     
     NormalizeData-->CalcScore[计算综合得分]
     
-    CalcScore-->CheckModel{是否调用ML模型?}
-    
-    CheckModel-->|是|CallGRPC[调用Python gRPC服务]
+    CalcScore-->CallGRPC[调用Python gRPC服务]
     CallGRPC-->SendFeatures[发送特征向量]
     SendFeatures-->LoadModel[加载预训练模型<br/>best_model.pkl]
     LoadModel-->ApplyScaler[应用标准化器<br/>scaler.pkl]
     ApplyScaler-->Inference[模型推理预测]
     Inference-->GetPrediction[获取预测等级]
     
-    CheckModel-->|否|SimplePredict[简单规则预测]
+    CallGRPC-->|超时或连接失败|Fail503[返回503学情预测服务不可用]
     
     GetPrediction-->GenerateSuggestions[生成学习建议]
-    SimplePredict-->GenerateSuggestions
     
     GenerateSuggestions-->AssembleResult[组装预测结果]
     
@@ -123,63 +121,31 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Start([进入课程学情诊断])-->LoadOverview[加载课程整体学情]
-    
-    LoadOverview-->GetCourseInfo[获取课程基本信息]
-    LoadOverview-->GetStudentList[获取学生列表]
-    
-    GetStudentList-->ForEachStudent{遍历每个学生}
-    
-    ForEachStudent-->GetStudentData[获取学生学情数据]
-    
-    GetStudentData-->GetVideoData[获取视频学习数据]
-    GetStudentData-->GetResourceData[获取资源学习数据]
-    GetStudentData-->GetDiscussionData[获取讨论参与数据]
-    GetStudentData-->GetAttendanceData[获取签到数据]
-    GetStudentData-->GetAssignmentData[获取作业数据]
-    
-    GetVideoData-->CalcCompletion[计算完成率]
-    GetResourceData-->CalcCompletion
-    GetDiscussionData-->CalcCompletion
-    GetAttendanceData-->CalcCompletion
-    GetAssignmentData-->CalcCompletion
-    
-    CalcCompletion-->CalcStudentScore[计算学生综合得分]
-    CalcStudentScore-->PredictStudentGrade[预测学生成绩等级]
-    PredictStudentGrade-->GenStudentSuggestions[生成学习建议]
-    
-    GenStudentSuggestions-->NextStudent{还有学生?}
-    NextStudent-->|是|GetStudentData
-    NextStudent-->|否|CalcCourseStats[计算课程整体统计]
-    
+    Start([进入课程学情诊断])-->AuthCheck[鉴权与课程归属校验]
+    AuthCheck-->BatchQuery[批查询全班学情特征]
+    BatchQuery-->GrpcBatch[批量调用Python gRPC预测]
+    GrpcBatch-->|任一次失败|Fail503[整请求返回503]
+    GrpcBatch-->|全部成功|CalcCourseStats[计算课程整体统计]
     CalcCourseStats-->AvgScore[计算平均综合得分]
     CalcCourseStats-->VideoStats[统计视频学习情况]
     CalcCourseStats-->AssignmentStats[统计作业完成情况]
     CalcCourseStats-->DiscussionStats[统计讨论参与情况]
     CalcCourseStats-->AttendanceStats[统计签到情况]
-    
     VideoStats-->RenderCharts[渲染Chart.js图表]
     AssignmentStats-->RenderCharts
     DiscussionStats-->RenderCharts
     AttendanceStats-->RenderCharts
     AvgScore-->RenderCharts
-    
     RenderCharts-->ShowOverview[展示班级学情总览]
-    
     ShowOverview-->CanSwitch{切换标签?}
     CanSwitch-->|是|LoadStudents[加载学生个体学情]
     CanSwitch-->|否|StayOverview[停留在总览]
-    
-    StayOverview-->End([结束])
-    LoadStudents-->StudentDetailFlow
-    
-    subgraph StudentDetailFlow
-        StudentList[学生列表展示]
-        StudentList-->ClickStudent[点击展开学生详情]
-        ClickStudent-->RenderStudentCharts[渲染学生个人图表]
-        RenderStudentCharts-->ShowGrade[显示预测成绩等级]
-        ShowGrade-->ShowSuggestions[显示学习建议]
-    end
+    StayOverview-->EndNode([结束])
+    LoadStudents-->StudentList[学生列表展示]
+    StudentList-->ClickStudent[点击展开学生详情]
+    ClickStudent-->RenderStudentCharts[渲染学生个人图表]
+    RenderStudentCharts-->ShowGrade[显示预测成绩等级]
+    ShowGrade-->ShowSuggestions[显示学习建议]
 ```
 
 ## 4. 个人学情报告流程图

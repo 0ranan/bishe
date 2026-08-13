@@ -5,15 +5,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ==================== 创建表格 ====================
 
--- 创建 todos 表
--- 用于存储待办事项
-CREATE TABLE IF NOT EXISTS todos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- 主键ID
-    title TEXT NOT NULL, -- 待办事项标题
-    completed BOOLEAN DEFAULT false, -- 是否完成
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 创建时间
-);
-
 -- 创建学生表
 -- 用于存储学生信息
 CREATE TABLE IF NOT EXISTS students (

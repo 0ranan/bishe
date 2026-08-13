@@ -67,7 +67,7 @@ async function verifyTables() {
     console.log('\n验证表结构...');
     
     // 检查所有表是否存在
-    const tables = ['todos', 'students', 'teachers', 'classes', 'student_class', 'teacher_class', 'courses', 'class_course', 'course_videos', 'video_comments', 'video_play_duration', 'course_attendance', 'attendance_records', 'course_resources', 'resource_downloads', 'discussion_topics', 'topic_comments', 'assignment_topics', 'assignments'];
+    const tables = ['students', 'teachers', 'classes', 'student_class', 'teacher_class', 'courses', 'class_course', 'course_videos', 'video_comments', 'video_play_duration', 'course_attendance', 'attendance_records', 'course_resources', 'resource_downloads', 'discussion_topics', 'topic_comments', 'assignment_topics', 'assignments'];
     
     for (const table of tables) {
       const result = await sql`
