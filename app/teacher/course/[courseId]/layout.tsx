@@ -13,10 +13,10 @@ import {
 
 function resolveActiveMenuItem(pathname: string): string | undefined {
   const segments = pathname.split('/').filter(Boolean);
-  const module = segments[3];
-  if (!module) return undefined;
-  if (module === 'video') return 'chapters';
-  return module;
+  const moduleKey = segments[3];
+  if (!moduleKey) return undefined;
+  if (moduleKey === 'video') return 'chapters';
+  return moduleKey;
 }
 
 function isBigscreenRoute(pathname: string): boolean {

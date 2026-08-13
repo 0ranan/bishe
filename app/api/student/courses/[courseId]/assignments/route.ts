@@ -18,6 +18,21 @@ export interface AssignmentTopic {
   status?: string;
 }
 
+interface AssignmentTopicRow {
+  id: string;
+  title: string;
+  content: string;
+  start_time: Date;
+  end_time: Date;
+  teacher_id: string;
+  teacher_name: string;
+  created_at: Date;
+  assignment_id: string | null;
+  submit_time: Date | null;
+  score: number | null;
+  status: string | null;
+}
+
 // 定义作业接口
 export interface Assignment {
   id: string;
@@ -80,7 +95,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       ORDER BY at.created_at DESC
     `;
 
-    const assignments: AssignmentTopic[] = assignmentResult.map((row: any) => ({
+    const assignments: AssignmentTopic[] = assignmentResult.map((row: AssignmentTopicRow) => ({
       id: row.id,
       title: row.title,
       content: row.content,
@@ -91,8 +106,8 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       created_at: row.created_at.toISOString(),
       submitted: !!row.assignment_id,
       submitted_time: row.submit_time ? row.submit_time.toISOString() : undefined,
-      score: row.score,
-      status: row.status
+      score: row.score ?? undefined,
+      status: row.status ?? undefined
     }));
 
     return applyAuthToResponse(
@@ -117,7 +132,7 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
-    const { courseId } = await params;
+    await params;
     const { decoded } = authResult;
     const studentId = decoded.id;
 

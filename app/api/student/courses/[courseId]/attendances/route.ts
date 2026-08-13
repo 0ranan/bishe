@@ -13,6 +13,16 @@ export interface StudentAttendance {
   attended: boolean;
 }
 
+interface StudentAttendanceRow {
+  id: string;
+  title: string;
+  code: string;
+  start_time: Date;
+  end_time: Date;
+  created_at: Date;
+  attended: boolean;
+}
+
 /**
  * 获取学生课程的签到记录
  * @param request NextRequest 对象
@@ -62,7 +72,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
     `;
 
     // 处理签到记录，计算状态
-    const attendances: StudentAttendance[] = attendanceResult.map((row: any) => {
+    const attendances: StudentAttendance[] = attendanceResult.map((row: StudentAttendanceRow) => {
       const now = new Date();
       const endTime = new Date(row.end_time);
       let status: 'active' | 'ended' | 'missed' = 'ended';
@@ -106,7 +116,7 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
-    const { courseId } = await params;
+    await params;
     const { decoded } = authResult;
     const studentId = decoded.id;
 

@@ -46,7 +46,7 @@ export default function DiagnosisPage() {
   const discussionChartRef = useRef<HTMLCanvasElement>(null);
   const attendanceChartRef = useRef<HTMLCanvasElement>(null);
   const totalScoreChartRef = useRef<HTMLCanvasElement>(null);
-  const charts = useRef<any[]>([]);
+  const charts = useRef<Chart[]>([]);
 
   useEffect(() => {
     const fetchDiagnosis = async () => {

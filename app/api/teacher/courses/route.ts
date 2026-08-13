@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const courseId = `CO${Date.now()}`;
 
     // 使用正确的事务处理方式
-    const newCourse = await sql.begin(async (sql1) => {
+    const newCourse = await sql.begin(async () => {
       // 创建新课程
       const course = await sql`
         INSERT INTO courses (course_id, course_name, credit)
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
 
       // 过滤出用户选择的班级
       const selectedClassIds = teacherClasses
-        .filter((cls: any) => class_ids.includes(cls.class_id))
-        .map((cls: any) => cls.id);
+        .filter((cls: { id: string; class_id: string }) => class_ids.includes(cls.class_id))
+        .map((cls: { id: string; class_id: string }) => cls.id);
 
       if (selectedClassIds.length === 0) {
         throw new Error('未找到有效的班级');

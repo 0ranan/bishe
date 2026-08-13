@@ -13,6 +13,16 @@ export interface StudentSubmission {
   status: string;
 }
 
+interface StudentSubmissionRow {
+  id: string;
+  student_id: string;
+  student_name: string;
+  content: string;
+  submit_time: Date;
+  score: number | null;
+  status: string;
+}
+
 /**
  * 获取作业的学生提交情况
  * @param request NextRequest 对象
@@ -43,13 +53,13 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       ORDER BY a.submit_time DESC
     `;
 
-    const submissions: StudentSubmission[] = submissionResult.map((row: any) => ({
+    const submissions: StudentSubmission[] = submissionResult.map((row: StudentSubmissionRow) => ({
       id: row.id,
       student_id: row.student_id,
       student_name: row.student_name,
       content: row.content,
       submit_time: row.submit_time.toISOString(),
-      score: row.score,
+      score: row.score ?? undefined,
       status: row.status
     }));
 
@@ -75,7 +85,7 @@ export async function PUT(request: NextRequest, { params }: { params: { courseId
     const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
-    const { assignmentId } = await params;
+    await params;
 
     // 解析请求体
     const body = await request.json();

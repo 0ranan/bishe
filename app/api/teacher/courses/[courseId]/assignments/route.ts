@@ -16,6 +16,19 @@ export interface AssignmentTopic {
   total_count: number;
 }
 
+interface AssignmentTopicRow {
+  id: string;
+  title: string;
+  content: string;
+  start_time: Date;
+  end_time: Date;
+  teacher_id: string;
+  teacher_name: string;
+  created_at: Date;
+  submitted_count: number;
+  total_count: number;
+}
+
 /**
  * 获取课程作业列表
  * @param request NextRequest 对象
@@ -62,7 +75,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       ORDER BY at.created_at DESC
     `;
 
-    const assignments: AssignmentTopic[] = assignmentResult.map((row: any) => ({
+    const assignments: AssignmentTopic[] = assignmentResult.map((row: AssignmentTopicRow) => ({
       id: row.id,
       title: row.title,
       content: row.content,

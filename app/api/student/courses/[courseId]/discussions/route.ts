@@ -13,6 +13,16 @@ export interface DiscussionTopic {
   comment_count: number;
 }
 
+interface DiscussionTopicRow {
+  id: string;
+  title: string;
+  content: string;
+  teacher_id: string;
+  teacher_name: string;
+  created_at: Date;
+  comment_count: number;
+}
+
 // 定义评论接口
 export interface TopicComment {
   id: string;
@@ -21,6 +31,15 @@ export interface TopicComment {
   student_name: string;
   content: string;
   created_at: string;
+}
+
+interface TopicCommentRow {
+  id: string;
+  topic_id: string;
+  student_id: string;
+  student_name: string;
+  content: string;
+  created_at: Date;
 }
 
 /**
@@ -66,7 +85,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       ORDER BY dt.created_at DESC
     `;
 
-    const discussions: DiscussionTopic[] = discussionResult.map((row: any) => ({
+    const discussions: DiscussionTopic[] = discussionResult.map((row: DiscussionTopicRow) => ({
       id: row.id,
       title: row.title,
       content: row.content,
@@ -115,7 +134,7 @@ export async function GET_COMMENTS(request: NextRequest, { params }: { params: {
       ORDER BY tc.created_at ASC
     `;
 
-    const comments: TopicComment[] = commentResult.map((row: any) => ({
+    const comments: TopicComment[] = commentResult.map((row: TopicCommentRow) => ({
       id: row.id,
       topic_id: row.topic_id,
       student_id: row.student_id,

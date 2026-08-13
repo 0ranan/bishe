@@ -70,7 +70,7 @@ export default function TeacherPage() {
         const classesData = await classesResponse.json();
         setClasses(classesData.classes);
         // 默认选择所有班级
-        setSelectedClasses(classesData.classes.map((cls: any) => cls.class_id));
+        setSelectedClasses(classesData.classes.map((cls: {class_id: string, class_name: string, grade: string}) => cls.class_id));
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取课程失败');
         // 登录过期或出错，重定向到登录页面

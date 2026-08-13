@@ -32,7 +32,7 @@ function normalizeEmbeddingBaseUrl(raw: string): string {
   const trimmed = raw.trim().replace(/\/$/, '');
   try {
     const u = new URL(trimmed);
-    let path = u.pathname.replace(/\/$/, '') || '';
+    const path = u.pathname.replace(/\/$/, '') || '';
     if (/\/v1$/i.test(path)) {
       return `${u.origin}${path}`;
     }

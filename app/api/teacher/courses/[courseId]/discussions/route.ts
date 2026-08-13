@@ -13,6 +13,16 @@ export interface DiscussionTopic {
   comment_count: number;
 }
 
+interface DiscussionTopicRow {
+  id: string;
+  title: string;
+  content: string;
+  teacher_id: string;
+  teacher_name: string;
+  created_at: Date;
+  comment_count: number;
+}
+
 /**
  * 获取课程讨论列表
  * @param request NextRequest 对象
@@ -56,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       ORDER BY dt.created_at DESC
     `;
 
-    const discussions: DiscussionTopic[] = discussionResult.map((row: any) => ({
+    const discussions: DiscussionTopic[] = discussionResult.map((row: DiscussionTopicRow) => ({
       id: row.id,
       title: row.title,
       content: row.content,

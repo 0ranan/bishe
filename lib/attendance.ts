@@ -13,6 +13,20 @@ export interface Attendance {
   attended_students: number;
 }
 
+interface ClassIdRow {
+  class_id: string;
+}
+
+interface AttendanceRow {
+  id: string;
+  course_id: string;
+  title: string;
+  code: string;
+  start_time: Date;
+  end_time: Date;
+  created_at?: Date;
+}
+
 // 检查数据库连接状态
 async function checkDatabaseConnection() {
   try {
@@ -77,7 +91,7 @@ export async function getTeacherCourseAttendances(courseId: string, teacherId: s
       WHERE course_id = ${courseUuid}
     `;
 
-    const classIds = classesResult.map((row: any) => row.class_id);
+    const classIds = classesResult.map((row: ClassIdRow) => row.class_id);
     let totalStudents = 0;
 
     // 如果有绑定的班级，计算总学生数
@@ -107,7 +121,7 @@ export async function getTeacherCourseAttendances(courseId: string, teacherId: s
 
     // 为每条签到记录计算已签到人数
     const attendances: Attendance[] = await Promise.all(
-      attendanceResult.map(async (row: any) => {
+      attendanceResult.map(async (row: AttendanceRow) => {
         const attendedResult = await sql`
           SELECT COUNT(*) as count 
           FROM attendance_records 
@@ -178,7 +192,7 @@ export async function createAttendance(courseId: string, title: string, duration
       WHERE course_id = ${courseUuid}
     `;
 
-    const classIds = classesResult.map((row: any) => row.class_id);
+    const classIds = classesResult.map((row: ClassIdRow) => row.class_id);
     let totalStudents = 0;
 
     // 如果有绑定的班级，计算总学生数
@@ -285,7 +299,7 @@ export async function endAttendance(attendanceId: string, teacherId: string): Pr
       WHERE course_id = ${attendance.course_id}
     `;
 
-    const classIds = classesResult.map((row: any) => row.class_id);
+    const classIds = classesResult.map((row: ClassIdRow) => row.class_id);
     let totalStudents = 0;
 
     // 如果有绑定的班级，计算总学生数

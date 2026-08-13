@@ -15,9 +15,9 @@ function resolveActiveMenuItem(pathname: string, courseId: string): string {
   const base = `/student/course/${courseId}`;
   if (pathname === base) return 'dashboard';
   const rest = pathname.slice(base.length + 1);
-  const module = rest.split('/')[0];
-  if (module === 'video') return 'chapters';
-  return module || 'dashboard';
+  const moduleKey = rest.split('/')[0];
+  if (moduleKey === 'video') return 'chapters';
+  return moduleKey || 'dashboard';
 }
 
 function resolveTitle(activeMenuItem: string): string {

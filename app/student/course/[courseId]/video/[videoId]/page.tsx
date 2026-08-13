@@ -1,7 +1,7 @@
 'use client';
 
 import { authFetch } from '@/lib/auth-client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AIAssistantFloat from '@/components/AIAssistantFloat';
 import { useCourse } from '@/lib/course-context';
@@ -44,6 +44,30 @@ export default function VideoPlayerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const startTimeRef = useRef<number>(Date.now());
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const recordPlayDuration = useCallback(async () => {
+    try {
+      const currentTime = Date.now();
+      const duration = Math.floor((currentTime - startTimeRef.current) / 1000);
+
+      if (duration > 0) {
+        await authFetch(
+          `/api/student/courses/${courseId}/videos/${videoId}/play-duration`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ duration }),
+          }
+        );
+
+        startTimeRef.current = currentTime;
+      }
+    } catch (err) {
+      console.error('记录播放时长失败:', err);
+    }
+  }, [courseId, videoId]);
 
   useEffect(() => {
     const fetchVideoDetails = async () => {
@@ -120,32 +144,7 @@ export default function VideoPlayerPage() {
         recordPlayDuration();
       };
     }
-  }, [courseId, videoId]);
-
-  const recordPlayDuration = async () => {
-    try {
-
-      const currentTime = Date.now();
-      const duration = Math.floor((currentTime - startTimeRef.current) / 1000);
-
-      if (duration > 0) {
-        await authFetch(
-          `/api/student/courses/${courseId}/videos/${videoId}/play-duration`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ duration }),
-          }
-        );
-
-        startTimeRef.current = currentTime;
-      }
-    } catch (err) {
-      console.error('记录播放时长失败:', err);
-    }
-  };
+  }, [courseId, videoId, recordPlayDuration]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
