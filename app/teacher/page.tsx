@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -32,10 +33,9 @@ export default function TeacherPage() {
     const checkLoginAndGetCourses = async () => {
       try {
         // 从本地存储获取 token
-        const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
-        if (!accessToken || !userData) {
+        if (!userData) {
           // 未登录，重定向到登录页面
           window.location.href = '/';
           return;
@@ -51,11 +51,7 @@ export default function TeacherPage() {
         }
 
         // 获取教师的课程
-        const response = await fetch('/api/teacher/courses', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const response = await authFetch('/api/teacher/courses');
 
         if (!response.ok) {
           throw new Error('获取课程失败');
@@ -65,11 +61,7 @@ export default function TeacherPage() {
         setCourses(data.courses);
 
         // 获取教师的班级
-        const classesResponse = await fetch('/api/teacher/classes', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const classesResponse = await authFetch('/api/teacher/classes');
 
         if (!classesResponse.ok) {
           throw new Error('获取班级失败');
@@ -96,13 +88,11 @@ export default function TeacherPage() {
   // 处理发布新课程
   const handleAddCourse = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken || !newCourseName) return;
+      if (!newCourseName) return;
 
-      const response = await fetch('/api/teacher/courses', {
+      const response = await authFetch('/api/teacher/courses', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -117,11 +107,7 @@ export default function TeacherPage() {
       }
 
       // 重新获取课程列表
-      const coursesResponse = await fetch('/api/teacher/courses', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const coursesResponse = await authFetch('/api/teacher/courses');
 
       const coursesData = await coursesResponse.json();
       setCourses(coursesData.courses);

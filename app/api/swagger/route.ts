@@ -12,7 +12,7 @@ export async function GET() {
         version: '1.0.0',
         description:
           '基于 Next.js App Router 的教学与学情相关接口。\n\n' +
-          '**认证**：登录后使用 `Authorization: Bearer <accessToken>`。可选请求头 `x-refresh-token` 用于 access token 将过期时自动刷新；若签发新 token，响应头可能包含 `x-access-token`，响应体也可能包含 `newToken`。',
+          '**认证**：登录后使用 `Authorization: Bearer <accessToken>`。客户端应同时携带请求头 `x-refresh-token`（登录时获得的 refreshToken）；当 access 即将过期或已失效且 refresh 有效时，服务端可在同请求内换发，新 access 仅出现在响应头 `x-access-token`（不再放入响应体）。',
       },
       servers: [
         {
@@ -123,7 +123,7 @@ export async function GET() {
             in: 'header',
             required: false,
             schema: { type: 'string' },
-            description: '可选；用于即将过期时换取新 access token',
+            description: '建议携带；access 即将过期或已失效时用于换发新 access token',
           },
         },
         schemas: {
@@ -248,7 +248,6 @@ export async function GET() {
             properties: {
               success: { type: 'boolean' },
               user: { type: 'object', additionalProperties: true },
-              newToken: { type: 'string', description: '若服务端刷新了 token' },
             },
           },
           CreateTeacherRequest: {

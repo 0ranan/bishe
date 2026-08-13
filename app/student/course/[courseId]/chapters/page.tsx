@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -28,18 +29,8 @@ export default function ChaptersPage() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const videosResponse = await fetch(`/api/student/courses/${courseId}/videos`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const videosResponse = await authFetch(`/api/student/courses/${courseId}/videos`);
 
         if (!videosResponse.ok) {
           throw new Error('获取课程视频失败');

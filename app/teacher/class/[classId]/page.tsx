@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -57,10 +58,9 @@ export default function TeacherClassDetailPage() {
     const checkLoginAndGetClassDetails = async () => {
       try {
         // 从本地存储获取 token
-        const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
-        if (!accessToken || !userData) {
+        if (!userData) {
           // 未登录，重定向到登录页面
           window.location.href = '/';
           return;
@@ -76,11 +76,7 @@ export default function TeacherClassDetailPage() {
         }
 
         // 获取班级详情
-        const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const classResponse = await authFetch(`/api/teacher/classes/${classId}`);
 
         if (!classResponse.ok) {
           throw new Error('获取班级信息失败');
@@ -93,11 +89,7 @@ export default function TeacherClassDetailPage() {
         setEditGrade(classData.class.grade);
 
         // 获取班级学生列表
-        const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const studentsResponse = await authFetch(`/api/teacher/classes/${classId}/students`);
 
         if (!studentsResponse.ok) {
           throw new Error('获取学生列表失败');
@@ -127,13 +119,10 @@ export default function TeacherClassDetailPage() {
   // 处理编辑班级信息
   const handleEditClass = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
-      const response = await fetch(`/api/teacher/classes/${classId}`, {
+      const response = await authFetch(`/api/teacher/classes/${classId}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -163,9 +152,8 @@ export default function TeacherClassDetailPage() {
   // 处理添加学生
   const handleAddStudent = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
       const sid = newStudentId.trim();
-      if (!accessToken || !sid) return;
+      if (!sid) return;
 
       const payload: Record<string, string> = { student_id: sid };
       const nameTrim = newStudentName.trim();
@@ -177,10 +165,9 @@ export default function TeacherClassDetailPage() {
       if (gradeTrim) payload.grade = gradeTrim;
       if (majorTrim) payload.major = majorTrim;
 
-      const response = await fetch(`/api/teacher/classes/${classId}/students`, {
+      const response = await authFetch(`/api/teacher/classes/${classId}/students`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -193,21 +180,13 @@ export default function TeacherClassDetailPage() {
       }
 
       // 重新获取学生列表
-      const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const studentsResponse = await authFetch(`/api/teacher/classes/${classId}/students`);
 
       const studentsData = await studentsResponse.json();
       setStudents(studentsData.students);
       
       // 重新获取班级信息以更新学生人数
-      const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const classResponse = await authFetch(`/api/teacher/classes/${classId}`);
 
       const classData = await classResponse.json();
       setCls(classData.class);
@@ -237,14 +216,9 @@ export default function TeacherClassDetailPage() {
     if (!confirm('确定要删除这个学生吗？')) return;
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
-      const response = await fetch(`/api/teacher/classes/${classId}/students/${studentId}`, {
+      const response = await authFetch(`/api/teacher/classes/${classId}/students/${studentId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
       });
 
       if (!response.ok) {
@@ -252,21 +226,13 @@ export default function TeacherClassDetailPage() {
       }
 
       // 重新获取学生列表
-      const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const studentsResponse = await authFetch(`/api/teacher/classes/${classId}/students`);
 
       const studentsData = await studentsResponse.json();
       setStudents(studentsData.students);
       
       // 重新获取班级信息以更新学生人数
-      const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const classResponse = await authFetch(`/api/teacher/classes/${classId}`);
 
       const classData = await classResponse.json();
       setCls(classData.class);
@@ -325,13 +291,10 @@ export default function TeacherClassDetailPage() {
     
     setImporting(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
-      const response = await fetch(`/api/teacher/classes/${classId}/students/batch`, {
+      const response = await authFetch(`/api/teacher/classes/${classId}/students/batch`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -347,21 +310,13 @@ export default function TeacherClassDetailPage() {
       const result = await response.json();
       
       // 重新获取学生列表
-      const studentsResponse = await fetch(`/api/teacher/classes/${classId}/students`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const studentsResponse = await authFetch(`/api/teacher/classes/${classId}/students`);
 
       const studentsData = await studentsResponse.json();
       setStudents(studentsData.students);
       
       // 重新获取班级信息以更新学生人数
-      const classResponse = await fetch(`/api/teacher/classes/${classId}`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const classResponse = await authFetch(`/api/teacher/classes/${classId}`);
 
       const classData = await classResponse.json();
       setCls(classData.class);

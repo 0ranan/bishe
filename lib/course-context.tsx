@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { getAccessToken } from '@/lib/auth-client';
+import { authFetch } from '@/lib/auth-client';
 
 export type CourseSummary = {
   course_id: string;
@@ -41,14 +41,6 @@ export function CourseProvider({
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      setError('未登录');
-      setCourse(null);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     setError('');
     try {
@@ -56,9 +48,7 @@ export function CourseProvider({
         role === 'teacher'
           ? `/api/teacher/courses/${courseId}`
           : `/api/student/courses/${courseId}`;
-      const response = await fetch(endpoint, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const response = await authFetch(endpoint);
       if (!response.ok) {
         throw new Error('获取课程信息失败');
       }

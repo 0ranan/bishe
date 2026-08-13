@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     // 验证token
-    const result = await withAuth(request, 'student');
+    const result = withAuth(request, 'student');
     if (result instanceof NextResponse) return result;
 
     const { videoId } = await params;
@@ -28,11 +28,7 @@ export async function POST(
     const response = NextResponse.json({ message: '播放时长记录成功' });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('记录播放时长失败:', error);
     return NextResponse.json({ error: '记录播放时长失败' }, { status: 500 });

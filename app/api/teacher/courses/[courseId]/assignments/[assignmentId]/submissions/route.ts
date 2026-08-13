@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 // 定义学生作业提交接口
@@ -22,7 +22,7 @@ export interface StudentSubmission {
 export async function GET(request: NextRequest, { params }: { params: { courseId: string; assignmentId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'teacher');
+    const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
     const { assignmentId } = await params;
@@ -53,7 +53,10 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       status: row.status
     }));
 
-    return NextResponse.json({ submissions }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ submissions }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('获取学生提交失败:', error);
     return NextResponse.json({ error: '获取学生提交失败' }, { status: 500 });
@@ -69,7 +72,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 export async function PUT(request: NextRequest, { params }: { params: { courseId: string; assignmentId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'teacher');
+    const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
     const { assignmentId } = await params;
@@ -89,7 +92,10 @@ export async function PUT(request: NextRequest, { params }: { params: { courseId
       WHERE id = ${submissionId}
     `;
 
-    return NextResponse.json({ success: true, message: '批改成功' }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ success: true, message: '批改成功' }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('批改作业失败:', error);
     return NextResponse.json({ error: '批改作业失败' }, { status: 500 });

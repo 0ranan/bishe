@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { verifyPassword, hashPassword } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -19,7 +19,7 @@ const changePasswordSchema = z.object({
 export async function PUT(request: NextRequest) {
   try {
     // 验证 token（复用工具：withAuth）
-    const authResult = await withAuth(request);
+    const authResult = withAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
@@ -109,11 +109,13 @@ export async function PUT(request: NextRequest) {
       `;
     }
 
-    return NextResponse.json({
-      success: true,
-      message: '密码修改成功',
-      ...(authResult.newToken && { newToken: authResult.newToken })
-    });
+    return applyAuthToResponse(
+      NextResponse.json({
+        success: true,
+        message: '密码修改成功'
+      }),
+      authResult
+    );
   } catch (error) {
     console.error('修改密码失败:', error);
     return NextResponse.json(

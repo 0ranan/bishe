@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AIAssistantFloat from '@/components/AIAssistantFloat';
@@ -47,18 +48,8 @@ export default function VideoPlayerPage() {
   useEffect(() => {
     const fetchVideoDetails = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const videosResponse = await fetch(`/api/student/courses/${courseId}/videos`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const videosResponse = await authFetch(`/api/student/courses/${courseId}/videos`);
 
         if (!videosResponse.ok) {
           throw new Error('获取课程视频失败');
@@ -72,14 +63,7 @@ export default function VideoPlayerPage() {
         }
         setVideo(foundVideo);
 
-        const commentsResponse = await fetch(
-          `/api/student/courses/${courseId}/videos/${videoId}/comments`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const commentsResponse = await authFetch(`/api/student/courses/${courseId}/videos/${videoId}/comments`);
 
         if (!commentsResponse.ok) {
           throw new Error('获取视频评价失败');
@@ -140,19 +124,16 @@ export default function VideoPlayerPage() {
 
   const recordPlayDuration = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
       const currentTime = Date.now();
       const duration = Math.floor((currentTime - startTimeRef.current) / 1000);
 
       if (duration > 0) {
-        await fetch(
+        await authFetch(
           `/api/student/courses/${courseId}/videos/${videoId}/play-duration`,
           {
             method: 'POST',
             headers: {
-              Authorization: `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ duration }),
@@ -174,18 +155,11 @@ export default function VideoPlayerPage() {
     try {
       setSubmittingComment(true);
 
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(
+      const response = await authFetch(
         `/api/student/courses/${courseId}/videos/${videoId}/comments`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ content: newComment, rating }),

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 export async function PUT(
@@ -8,7 +8,7 @@ export async function PUT(
 ) {
   try {
     // 验证token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     const { videoId, commentId } = await params;
@@ -35,11 +35,7 @@ export async function PUT(
     const response = NextResponse.json({ comment: updatedComments[0] });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('更新评论状态失败:', error);
     return NextResponse.json({ error: '更新评论状态失败' }, { status: 500 });

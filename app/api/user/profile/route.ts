@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 /**
  * 获取用户信息
@@ -11,7 +11,7 @@ import { withAuth } from '@/lib/middleware';
 export async function GET(request: NextRequest) {
   try {
     // 验证 token（复用工具：withAuth）
-    const authResult = await withAuth(request);
+    const authResult = withAuth(request);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
@@ -98,11 +98,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      user: userInfo,
-      ...(authResult.newToken && { newToken: authResult.newToken })
-    });
+    return applyAuthToResponse(
+      NextResponse.json({
+        success: true,
+        user: userInfo
+      }),
+      authResult
+    );
   } catch (error) {
     console.error('获取用户信息失败:', error);
     return NextResponse.json(

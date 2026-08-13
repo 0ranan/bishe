@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch, getAccessToken } from '@/lib/auth-client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { marked } from 'marked';
@@ -46,7 +47,7 @@ export default function StudentAIAssistantPage() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    if (!localStorage.getItem('accessToken')) {
+    if (!getAccessToken()) {
       router.push('/');
     }
   }, [router]);
@@ -76,13 +77,10 @@ export default function StudentAIAssistantPage() {
     setMessages((prevMessages) => [...prevMessages, initialAiMessage]);
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
-      const response = await fetch('/api/ai-assistant/query', {
+      const response = await authFetch('/api/ai-assistant/query', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query: inputMessage, courseId }),

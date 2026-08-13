@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 /**
  * 处理获取课程详情请求
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
     const courseId = (await params).courseId;
 
     // 验证 token
-    const result = await withAuth(request, 'student');
+    const result = withAuth(request, 'student');
     if (result instanceof NextResponse) return result;
 
     // 查询课程详情
@@ -42,11 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
     });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('获取课程详情失败:', error);
     return NextResponse.json(

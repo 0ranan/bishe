@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -41,17 +42,8 @@ export default function TeacherCourseDetailPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const videosResponse = await fetch(`/api/teacher/courses/${courseId}/videos`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const videosResponse = await authFetch(`/api/teacher/courses/${courseId}/videos`);
 
         if (!videosResponse.ok) {
           throw new Error('获取课程视频失败');
@@ -60,11 +52,7 @@ export default function TeacherCourseDetailPage() {
         const videosData = await videosResponse.json();
         setVideos(videosData.videos);
 
-        const classesResponse = await fetch(`/api/teacher/courses/${courseId}/classes`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const classesResponse = await authFetch(`/api/teacher/courses/${courseId}/classes`);
 
         if (!classesResponse.ok) {
           throw new Error('获取班级列表失败');
@@ -84,14 +72,11 @@ export default function TeacherCourseDetailPage() {
 
   const handleToggleClassConnection = async (classId: string, isConnected: boolean) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
       const method = isConnected ? 'DELETE' : 'POST';
-      const response = await fetch(`/api/teacher/courses/${courseId}/classes/${classId}`, {
+      const response = await authFetch(`/api/teacher/courses/${courseId}/classes/${classId}`, {
         method,
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -100,11 +85,7 @@ export default function TeacherCourseDetailPage() {
         throw new Error(isConnected ? '解绑班级失败' : '绑定班级失败');
       }
 
-      const classesResponse = await fetch(`/api/teacher/courses/${courseId}/classes`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const classesResponse = await authFetch(`/api/teacher/courses/${courseId}/classes`);
 
       const classesData = await classesResponse.json();
       setClasses(classesData.classes);

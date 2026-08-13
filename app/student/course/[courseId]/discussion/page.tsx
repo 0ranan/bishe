@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -42,21 +43,8 @@ export default function DiscussionPage() {
   useEffect(() => {
     const fetchDiscussions = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const discussionResponse = await fetch(
-          `/api/student/courses/${courseId}/discussions`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const discussionResponse = await authFetch(`/api/student/courses/${courseId}/discussions`);
 
         if (discussionResponse.ok) {
           const discussionData = await discussionResponse.json();
@@ -74,21 +62,8 @@ export default function DiscussionPage() {
 
   const fetchComments = async (topicId: string) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(
-        `/api/student/courses/${courseId}/discussions/${topicId}/comments`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await authFetch(`/api/student/courses/${courseId}/discussions/${topicId}/comments`);
 
       if (response.ok) {
         const data = await response.json();
@@ -117,19 +92,12 @@ export default function DiscussionPage() {
     }
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(
+      const response = await authFetch(
         `/api/student/courses/${courseId}/discussions/${topicId}/comments`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ content: commentContent }),

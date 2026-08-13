@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 export async function GET(request: NextRequest) {
   try {
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     const currentTeacher = await sql`
@@ -29,11 +29,7 @@ export async function GET(request: NextRequest) {
       teachers
     });
 
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('获取教师列表失败:', error);
     return NextResponse.json(
@@ -45,7 +41,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     const currentTeacher = await sql`
@@ -91,11 +87,7 @@ export async function POST(request: NextRequest) {
       teacher: newTeachers[0]
     });
 
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('创建教师失败:', error);
     return NextResponse.json(

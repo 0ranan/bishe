@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 import { moderateContent } from '@/lib/aigc';
 
@@ -34,7 +34,7 @@ export interface TopicComment {
 export async function GET(request: NextRequest, { params }: { params: { courseId: string, topicId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'student');
+    const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
     const { topicId } = await params;
@@ -65,7 +65,10 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       created_at: row.created_at.toISOString()
     }));
 
-    return NextResponse.json({ comments }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ comments }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('获取评论列表失败:', error);
     return NextResponse.json({ error: '获取评论列表失败' }, { status: 500 });
@@ -81,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 export async function POST(request: NextRequest, { params }: { params: { courseId: string, topicId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'student');
+    const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
     const { topicId } = await params;
@@ -143,14 +146,17 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
 
     const studentName = studentResult[0]?.name || '';
 
-    return NextResponse.json({
-      id: commentId,
-      topic_id: topicId,
-      student_id: studentId,
-      student_name: studentName,
-      content,
-      created_at: new Date().toISOString()
-    }, { status: 201 });
+    return applyAuthToResponse(
+      NextResponse.json({
+        id: commentId,
+        topic_id: topicId,
+        student_id: studentId,
+        student_name: studentName,
+        content,
+        created_at: new Date().toISOString()
+      }, { status: 201 }),
+      authResult
+    );
   } catch (error) {
     console.error('提交评论失败:', error);
     return NextResponse.json({ error: '提交评论失败' }, { status: 500 });

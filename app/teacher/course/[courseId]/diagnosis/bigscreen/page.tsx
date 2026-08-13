@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Chart from 'chart.js/auto';
@@ -120,9 +121,8 @@ export default function DiagnosisBigscreenPage() {
   const chartsRef = useRef<Chart[]>([]);
 
   const loadData = useCallback(async () => {
-    const accessToken = localStorage.getItem('accessToken');
     const userData = localStorage.getItem('user');
-    if (!accessToken || !userData) {
+    if (!userData) {
       router.push('/');
       return;
     }
@@ -132,16 +132,12 @@ export default function DiagnosisBigscreenPage() {
       return;
     }
 
-    const courseRes = await fetch(`/api/teacher/courses/${courseId}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const courseRes = await authFetch(`/api/teacher/courses/${courseId}`);
     if (!courseRes.ok) throw new Error('获取课程信息失败');
     const courseJson = await courseRes.json();
     setCourse(courseJson.course);
 
-    const diagRes = await fetch(`/api/teacher/courses/${courseId}/diagnosis`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const diagRes = await authFetch(`/api/teacher/courses/${courseId}/diagnosis`);
     if (!diagRes.ok) throw new Error('获取学情数据失败');
     const diagJson = await diagRes.json();
     setStudents(diagJson.data.students);

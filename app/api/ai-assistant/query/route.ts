@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { generateEmbedding, searchSimilar } from '@/lib/vector';
 import { moderateContent } from '@/lib/aigc';
 import { sql } from '@/db/client';
@@ -28,16 +28,13 @@ function buildCourseInfoSection(course: CoursePromptFields): string {
 export async function POST(request: NextRequest) {
   try {
     // 验证 token
-    const result = await withAuth(request);
-    if (result instanceof Response) return result;
+    const authResult = withAuth(request);
+    if (authResult instanceof NextResponse) return authResult;
 
     const { query, courseId } = await request.json();
 
     if (!query || !courseId) {
-      return new Response(JSON.stringify({ error: '问题和课程ID不能为空' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return NextResponse.json({ error: '问题和课程ID不能为空' }, { status: 400 });
     }
 
     const courses = await sql`
@@ -47,10 +44,7 @@ export async function POST(request: NextRequest) {
     `;
 
     if (courses.length === 0) {
-      return new Response(JSON.stringify({ error: '课程不存在' }), { 
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return NextResponse.json({ error: '课程不存在' }, { status: 404 });
     }
 
     const courseRow = courses[0] as CoursePromptFields & { id: string };
@@ -59,10 +53,10 @@ export async function POST(request: NextRequest) {
     // 审核问题内容
     const moderationResult = await moderateContent(query);
     if (!moderationResult.approved) {
-      return new Response(JSON.stringify({ error: moderationResult.reason || '问题内容不符合规范' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return NextResponse.json(
+        { error: moderationResult.reason || '问题内容不符合规范' },
+        { status: 400 }
+      );
     }
 
     const queryEmbedding = await generateEmbedding(query);
@@ -72,8 +66,8 @@ export async function POST(request: NextRequest) {
     });
 
     let context = '';
-    for (const result of similarResults) {
-      const meta = (result as { metadata?: { document?: string; content?: string } })
+    for (const hit of similarResults) {
+      const meta = (hit as { metadata?: { document?: string; content?: string } })
         .metadata;
       const piece = meta?.document ?? meta?.content;
       if (piece) {
@@ -87,18 +81,18 @@ export async function POST(request: NextRequest) {
       credit: courseRow.credit,
     });
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-      },
-    });
+    return applyAuthToResponse(
+      new NextResponse(stream, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Transfer-Encoding': 'chunked',
+        },
+      }),
+      authResult
+    );
   } catch (error) {
     console.error('AI助手查询失败:', error);
-    return new Response(JSON.stringify({ error: 'AI助手查询失败' }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return NextResponse.json({ error: 'AI助手查询失败' }, { status: 500 });
   }
 }
 

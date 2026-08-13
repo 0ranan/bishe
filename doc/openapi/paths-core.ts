@@ -72,7 +72,7 @@
  *       - $ref: '#/components/parameters/RefreshTokenHeader'
  *     responses:
  *       200:
- *         description: 成功；若服务端刷新了 token，可能出现在响应体 `newToken` 或响应头 `x-access-token`
+ *         description: 成功；若服务端刷新了 token，新 access 仅出现在响应头 `x-access-token`
  *         content:
  *           application/json:
  *             schema:

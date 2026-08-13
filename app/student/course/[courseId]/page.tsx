@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -40,18 +41,8 @@ export default function CourseDetailPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const videosResponse = await fetch(`/api/student/courses/${courseId}/videos`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const videosResponse = await authFetch(`/api/student/courses/${courseId}/videos`);
 
         if (!videosResponse.ok) {
           throw new Error('获取课程视频失败');
@@ -60,14 +51,7 @@ export default function CourseDetailPage() {
         const videosData = await videosResponse.json();
         setVideos(videosData.videos);
 
-        const attendanceResponse = await fetch(
-          `/api/student/courses/${courseId}/attendances`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const attendanceResponse = await authFetch(`/api/student/courses/${courseId}/attendances`);
 
         if (attendanceResponse.ok) {
           const attendanceData = await attendanceResponse.json();

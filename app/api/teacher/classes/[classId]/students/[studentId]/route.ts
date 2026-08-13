@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 /**
  * 处理从班级删除学生请求
@@ -14,25 +14,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { class
     const classId = (await params).classId;
     const studentId = (await params).studentId;
 
-    // 从请求头获取 token
-    const authorization = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authorization);
+    const result = withAuth(request, 'teacher');
+    if (result instanceof NextResponse) return result;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: '缺少访问令牌' },
-        { status: 401 }
-      );
-    }
-
-    // 验证 token
-    const user = verifyAccessToken(token);
-    if (!user || user.type !== 'teacher') {
-      return NextResponse.json(
-        { error: '无效的访问令牌' },
-        { status: 401 }
-      );
-    }
+    const user = result.decoded;
 
     // 检查教师是否有权限管理该班级
     const teacherClasses = await sql`
@@ -74,10 +59,13 @@ export async function DELETE(request: NextRequest, { params }: { params: { class
     `;
 
     // 返回成功响应
-    return NextResponse.json({
-      success: true,
-      message: '学生删除成功'
-    });
+    return applyAuthToResponse(
+      NextResponse.json({
+        success: true,
+        message: '学生删除成功'
+      }),
+      result
+    );
   } catch (error) {
     console.error('删除学生失败:', error);
     return NextResponse.json(

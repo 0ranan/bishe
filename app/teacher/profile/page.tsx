@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { authFetch } from '@/lib/auth-client';
 
 interface TeacherProfile {
   type: 'teacher';
@@ -29,17 +30,7 @@ export default function TeacherProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          window.location.href = '/';
-          return;
-        }
-
-        const response = await fetch('/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const response = await authFetch('/api/user/profile');
 
         if (!response.ok) {
           throw new Error('获取个人信息失败');
@@ -47,10 +38,6 @@ export default function TeacherProfilePage() {
 
         const data = await response.json();
         setProfile(data.user);
-
-        if (data.newToken) {
-          localStorage.setItem('accessToken', data.newToken);
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取个人信息失败');
       } finally {
@@ -78,15 +65,9 @@ export default function TeacherProfilePage() {
 
     setChangingPassword(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        throw new Error('未登录');
-      }
-
-      const response = await fetch('/api/user/password', {
+      const response = await authFetch('/api/user/password', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -107,10 +88,6 @@ export default function TeacherProfilePage() {
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-
-      if (data.newToken) {
-        localStorage.setItem('accessToken', data.newToken);
-      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : '修改密码失败');
       setMessageType('error');

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 export async function DELETE(request: NextRequest, { params }: { params: { courseId: string; resourceId: string } }) {
   try {
     const courseId = (await params).courseId;
     const resourceId = (await params).resourceId;
 
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     await sql`
@@ -29,11 +29,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { cours
       message: '资源删除成功'
     });
 
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('删除课程资源失败:', error);
     return NextResponse.json(

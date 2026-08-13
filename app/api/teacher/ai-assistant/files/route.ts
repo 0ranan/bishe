@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 // 获取已上传的文件列表
 export async function GET(request: NextRequest) {
   try {
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     const courseId = request.nextUrl.searchParams.get('courseId');
@@ -36,10 +36,13 @@ export async function GET(request: NextRequest) {
         af.created_at DESC
     `;
 
-    return NextResponse.json({ 
-      success: true, 
-      files 
-    });
+    return applyAuthToResponse(
+      NextResponse.json({
+        success: true,
+        files
+      }),
+      result
+    );
   } catch (error) {
     console.error('获取文件列表失败:', error);
     return NextResponse.json({ error: '获取文件列表失败' }, { status: 500 });

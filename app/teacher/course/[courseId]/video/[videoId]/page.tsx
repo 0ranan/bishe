@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -46,17 +47,8 @@ export default function TeacherVideoPlayerPage() {
   useEffect(() => {
     const fetchVideoDetails = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const videosResponse = await fetch(`/api/teacher/courses/${courseId}/videos`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const videosResponse = await authFetch(`/api/teacher/courses/${courseId}/videos`);
 
         if (!videosResponse.ok) {
           throw new Error('获取课程视频失败');
@@ -70,14 +62,7 @@ export default function TeacherVideoPlayerPage() {
         }
         setVideo(foundVideo);
 
-        const commentsResponse = await fetch(
-          `/api/teacher/courses/${courseId}/videos/${videoId}/comments`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const commentsResponse = await authFetch(`/api/teacher/courses/${courseId}/videos/${videoId}/comments`);
 
         if (!commentsResponse.ok) {
           throw new Error('获取视频评价失败');
@@ -131,18 +116,12 @@ export default function TeacherVideoPlayerPage() {
   ) => {
     try {
       setUpdatingCommentId(commentId);
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
 
-      const response = await fetch(
+      const response = await authFetch(
         `/api/teacher/courses/${courseId}/videos/${videoId}/comments/${commentId}`,
         {
           method: 'PUT',
           headers: {
-            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ status: newStatus }),

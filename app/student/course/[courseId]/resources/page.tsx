@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -29,21 +30,8 @@ export default function StudentCourseResourcesPage() {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const resourcesResponse = await fetch(
-          `/api/student/courses/${courseId}/resources`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const resourcesResponse = await authFetch(`/api/student/courses/${courseId}/resources`);
 
         if (resourcesResponse.ok) {
           const resourcesData = await resourcesResponse.json();

@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -38,20 +39,8 @@ export default function TeacherCourseAttendancePage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const attendanceResponse = await fetch(
-          `/api/teacher/courses/${courseId}/attendances`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const attendanceResponse = await authFetch(`/api/teacher/courses/${courseId}/attendances`);
 
         if (!attendanceResponse.ok) {
           throw new Error('获取签到记录失败');
@@ -84,16 +73,9 @@ export default function TeacherCourseAttendancePage() {
         return;
       }
 
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(`/api/teacher/courses/${courseId}/attendances`, {
+      const response = await authFetch(`/api/teacher/courses/${courseId}/attendances`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ title, duration }),
@@ -120,19 +102,11 @@ export default function TeacherCourseAttendancePage() {
 
   const handleEndAttendance = async (attendanceId: string) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
 
-      const response = await fetch(
+      const response = await authFetch(
         `/api/teacher/courses/${courseId}/attendances/${attendanceId}/end`,
         {
           method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
         }
       );
 

@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 /**
  * 处理绑定班级到课程请求
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     const classId = (await params).classId;
 
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     // 获取课程ID
@@ -75,11 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('绑定班级失败:', error);
     return NextResponse.json(
@@ -101,7 +97,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { cours
     const classId = (await params).classId;
 
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     // 获取课程ID
@@ -161,11 +157,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { cours
     });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('解绑班级失败:', error);
     return NextResponse.json(

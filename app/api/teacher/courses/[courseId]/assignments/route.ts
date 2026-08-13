@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 // 定义作业主题接口
@@ -25,7 +25,7 @@ export interface AssignmentTopic {
 export async function GET(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'teacher');
+    const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
     const { courseId } = await params;
@@ -75,7 +75,10 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       total_count: row.total_count
     }));
 
-    return NextResponse.json({ assignments }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ assignments }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('获取作业列表失败:', error);
     return NextResponse.json({ error: '获取作业列表失败' }, { status: 500 });
@@ -91,7 +94,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 export async function POST(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'teacher');
+    const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
     const { courseId } = await params;
@@ -147,18 +150,21 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
 
     const totalCount = studentCountResult[0]?.count || 0;
 
-    return NextResponse.json({
-      id: assignmentId,
-      title,
-      content,
-      start_time: new Date().toISOString(),
-      end_time: new Date(end_time).toISOString(),
-      teacher_id: teacherId,
-      teacher_name: teacherName,
-      created_at: new Date().toISOString(),
-      submitted_count: 0,
-      total_count: totalCount
-    }, { status: 201 });
+    return applyAuthToResponse(
+      NextResponse.json({
+        id: assignmentId,
+        title,
+        content,
+        start_time: new Date().toISOString(),
+        end_time: new Date(end_time).toISOString(),
+        teacher_id: teacherId,
+        teacher_name: teacherName,
+        created_at: new Date().toISOString(),
+        submitted_count: 0,
+        total_count: totalCount
+      }, { status: 201 }),
+      authResult
+    );
   } catch (error) {
     console.error('创建作业失败:', error);
     return NextResponse.json({ error: '创建作业失败' }, { status: 500 });

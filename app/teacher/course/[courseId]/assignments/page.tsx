@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -57,20 +58,8 @@ export default function TeacherCourseAssignmentsPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const assignmentResponse = await fetch(
-          `/api/teacher/courses/${courseId}/assignments`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const assignmentResponse = await authFetch(`/api/teacher/courses/${courseId}/assignments`);
 
         if (assignmentResponse.ok) {
           const assignmentData = await assignmentResponse.json();
@@ -93,17 +82,10 @@ export default function TeacherCourseAssignmentsPage() {
     }
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(`/api/teacher/courses/${courseId}/assignments`, {
+      const response = await authFetch(`/api/teacher/courses/${courseId}/assignments`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(newAssignment),
@@ -132,21 +114,7 @@ export default function TeacherCourseAssignmentsPage() {
       setSubmissionLoading(true);
       setCurrentAssignment(assignment);
 
-      const accessToken = localStorage.getItem('accessToken');
-
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(
-        `/api/teacher/courses/${courseId}/assignments/${assignment.id}/submissions`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await authFetch(`/api/teacher/courses/${courseId}/assignments/${assignment.id}/submissions`);
 
       if (response.ok) {
         const data = await response.json();

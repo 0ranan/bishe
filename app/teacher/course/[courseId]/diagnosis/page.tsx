@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Chart from 'chart.js/auto';
@@ -198,17 +199,8 @@ export default function TeacherCourseDiagnosisPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const diagnosisResponse = await fetch(`/api/teacher/courses/${courseId}/diagnosis`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const diagnosisResponse = await authFetch(`/api/teacher/courses/${courseId}/diagnosis`);
 
         if (!diagnosisResponse.ok) {
           throw new Error('获取学情数据失败');

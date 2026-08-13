@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import fs from 'fs';
 import path from 'path';
 import pdfParse from 'pdf-parse';
@@ -10,7 +10,7 @@ import { processFileContent } from '@/lib/vector';
 export async function POST(request: NextRequest) {
   try {
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     const formData = await request.formData();
@@ -107,11 +107,14 @@ export async function POST(request: NextRequest) {
       console.error('向量处理失败:', vectorError);
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      fileId, 
-      message: '文件上传成功' 
-    });
+    return applyAuthToResponse(
+      NextResponse.json({
+        success: true,
+        fileId,
+        message: '文件上传成功'
+      }),
+      result
+    );
   } catch (error) {
     console.error('文件上传失败:', error);
     return NextResponse.json({ error: '文件上传失败' }, { status: 500 });

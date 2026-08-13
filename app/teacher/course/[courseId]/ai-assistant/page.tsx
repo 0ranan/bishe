@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -37,20 +38,8 @@ export default function TeacherAIAssistantPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const filesResponse = await fetch(
-          `/api/teacher/ai-assistant/files?courseId=${courseId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const filesResponse = await authFetch(`/api/teacher/ai-assistant/files?courseId=${courseId}`);
 
         if (filesResponse.ok) {
           const filesData = await filesResponse.json();
@@ -82,18 +71,13 @@ export default function TeacherAIAssistantPage() {
 
     try {
       setUploading(true);
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('courseId', courseId);
 
-      const response = await fetch('/api/teacher/ai-assistant/upload', {
+      const response = await authFetch('/api/teacher/ai-assistant/upload', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
         body: formData,
       });
 
@@ -105,14 +89,7 @@ export default function TeacherAIAssistantPage() {
       setMessage('文件上传成功');
       setMessageType('success');
 
-      const filesResponse = await fetch(
-        `/api/teacher/ai-assistant/files?courseId=${courseId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const filesResponse = await authFetch(`/api/teacher/ai-assistant/files?courseId=${courseId}`);
 
       if (filesResponse.ok) {
         const filesData = await filesResponse.json();
@@ -141,13 +118,10 @@ export default function TeacherAIAssistantPage() {
     try {
       setTesting(true);
       setTestAnswer('');
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
 
-      const response = await fetch('/api/ai-assistant/query', {
+      const response = await authFetch('/api/ai-assistant/query', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query: testQuery, courseId }),

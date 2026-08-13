@@ -1,8 +1,8 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
 
 // 定义课程接口
 interface Course {
@@ -22,10 +22,9 @@ export default function StudentPage() {
     const checkLoginAndGetCourses = async () => {
       try {
         // 从本地存储获取 token
-        const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
-        if (!accessToken || !userData) {
+        if (!userData) {
           // 未登录，重定向到登录页面
           window.location.href = '/';
           return;
@@ -41,11 +40,7 @@ export default function StudentPage() {
         }
 
         // 获取学生所在班级的课程
-        const response = await fetch('/api/student/courses', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const response = await authFetch('/api/student/courses');
 
         if (!response.ok) {
           throw new Error('获取课程失败');

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { marked } from 'marked';
+import { authFetch } from '@/lib/auth-client';
 
 interface Message {
   id: string;
@@ -66,13 +67,9 @@ export default function AIAssistantFloat({ courseId }: AIAssistantFloatProps) {
     setMessages(prevMessages => [...prevMessages, initialAiMessage]);
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
-
-      const response = await fetch('/api/ai-assistant/query', {
+      const response = await authFetch('/api/ai-assistant/query', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query: inputMessage, courseId }),

@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -35,20 +36,8 @@ export default function TeacherCourseDiscussionPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const discussionResponse = await fetch(
-          `/api/teacher/courses/${courseId}/discussions`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const discussionResponse = await authFetch(`/api/teacher/courses/${courseId}/discussions`);
 
         if (discussionResponse.ok) {
           const discussionData = await discussionResponse.json();
@@ -71,17 +60,10 @@ export default function TeacherCourseDiscussionPage() {
     }
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(`/api/teacher/courses/${courseId}/discussions`, {
+      const response = await authFetch(`/api/teacher/courses/${courseId}/discussions`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(newDiscussion),

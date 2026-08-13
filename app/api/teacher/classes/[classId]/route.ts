@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 /**
  * 处理获取班级详情请求
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: { classId:
     const classId = (await params).classId;
 
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     // 查询班级详情
@@ -46,11 +46,7 @@ export async function GET(request: NextRequest, { params }: { params: { classId:
     });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('获取班级详情失败:', error);
     return NextResponse.json(
@@ -71,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: { params: { classId:
     const classId = (await params).classId;
 
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     // 解析请求体
@@ -128,11 +124,7 @@ export async function PUT(request: NextRequest, { params }: { params: { classId:
     });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('更新班级信息失败:', error);
     return NextResponse.json(

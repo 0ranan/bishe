@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 // 定义作业主题接口
@@ -38,7 +38,7 @@ export interface Assignment {
 export async function GET(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'student');
+    const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
     const { courseId } = await params;
@@ -95,7 +95,10 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       status: row.status
     }));
 
-    return NextResponse.json({ assignments }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ assignments }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('获取作业列表失败:', error);
     return NextResponse.json({ error: '获取作业列表失败' }, { status: 500 });
@@ -111,7 +114,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 export async function POST(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'student');
+    const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
     const { courseId } = await params;
@@ -166,7 +169,10 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
       `;
     }
 
-    return NextResponse.json({ success: true, message: '作业提交成功' }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ success: true, message: '作业提交成功' }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('提交作业失败:', error);
     return NextResponse.json({ error: '提交作业失败' }, { status: 500 });

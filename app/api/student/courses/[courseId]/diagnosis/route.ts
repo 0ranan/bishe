@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import {
   assertStudentInCourse,
   CourseAccessError,
@@ -13,12 +13,12 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { courseId: string } }
 ) {
-  const authResult = await withAuth(request, 'student');
+  const authResult = withAuth(request, 'student');
   if (authResult instanceof NextResponse) {
     return authResult;
   }
 
-  const { decoded, newToken } = authResult;
+  const { decoded } = authResult;
   const courseCode = (await params).courseId;
 
   try {
@@ -38,11 +38,7 @@ export async function GET(
       },
     });
 
-    if (newToken) {
-      response.headers.set('x-access-token', newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, authResult);
   } catch (error) {
     if (error instanceof CourseAccessError) {
       return NextResponse.json(

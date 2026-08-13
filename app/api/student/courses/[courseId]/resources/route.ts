@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 export async function GET(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     const courseId = (await params).courseId;
 
-    const result = await withAuth(request, 'student');
+    const result = withAuth(request, 'student');
     if (result instanceof NextResponse) return result;
 
     const resources = await sql`
@@ -27,11 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       resources
     });
 
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('获取课程资源失败:', error);
     return NextResponse.json(

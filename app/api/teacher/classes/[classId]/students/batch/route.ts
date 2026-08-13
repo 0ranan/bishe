@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 export async function POST(request: NextRequest, { params }: { params: { classId: string } }) {
   try {
     const classId = (await params).classId;
 
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     const body = await request.json();
@@ -87,11 +87,7 @@ export async function POST(request: NextRequest, { params }: { params: { classId
       existed
     });
 
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('批量导入学生失败:', error);
     return NextResponse.json(

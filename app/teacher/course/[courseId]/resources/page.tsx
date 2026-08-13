@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -34,20 +35,8 @@ export default function TeacherCourseResourcesPage() {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
 
-        const resourcesResponse = await fetch(
-          `/api/teacher/courses/${courseId}/resources`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const resourcesResponse = await authFetch(`/api/teacher/courses/${courseId}/resources`);
 
         if (resourcesResponse.ok) {
           const resourcesData = await resourcesResponse.json();
@@ -69,23 +58,14 @@ export default function TeacherCourseResourcesPage() {
 
     try {
       setUploading(true);
-      const accessToken = localStorage.getItem('accessToken');
-
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
 
       const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', fileNameWithoutExt);
 
-      const response = await fetch(`/api/teacher/courses/${courseId}/resources`, {
+      const response = await authFetch(`/api/teacher/courses/${courseId}/resources`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
         body: formData,
       });
 
@@ -119,20 +99,11 @@ export default function TeacherCourseResourcesPage() {
     }
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(
+      const response = await authFetch(
         `/api/teacher/courses/${courseId}/resources/${resourceId}`,
         {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
         }
       );
 

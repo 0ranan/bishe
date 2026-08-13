@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTeacherCourseAttendances, createAttendance } from '@/lib/attendance';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 export async function GET(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'teacher');
+    const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
     // 在 Next.js 15 中，params 需要 await
@@ -15,11 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
     const response = NextResponse.json({ attendances }, { status: 200 });
     
     // 如果有新的 token，添加到响应头
-    if (authResult.newToken) {
-      response.headers.set('x-access-token', authResult.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, authResult);
   } catch (error) {
     console.error('获取签到记录失败:', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : '获取签到记录失败' }, { status: 500 });
@@ -29,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 export async function POST(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'teacher');
+    const authResult = withAuth(request, 'teacher');
     if (authResult instanceof NextResponse) return authResult;
 
     // 在 Next.js 15 中，params 需要 await
@@ -45,11 +41,7 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     const response = NextResponse.json({ attendance }, { status: 201 });
     
     // 如果有新的 token，添加到响应头
-    if (authResult.newToken) {
-      response.headers.set('x-access-token', authResult.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, authResult);
   } catch (error) {
     console.error('创建签到失败:', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : '创建签到失败' }, { status: 500 });

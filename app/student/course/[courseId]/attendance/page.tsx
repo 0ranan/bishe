@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -31,21 +32,8 @@ export default function AttendancePage() {
   useEffect(() => {
     const fetchAttendances = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const attendanceResponse = await fetch(
-          `/api/student/courses/${courseId}/attendances`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const attendanceResponse = await authFetch(`/api/student/courses/${courseId}/attendances`);
 
         if (!attendanceResponse.ok) {
           throw new Error('获取签到记录失败');
@@ -65,22 +53,15 @@ export default function AttendancePage() {
 
   const handle签到 = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
 
       if (!签到码) {
         set签到状态('请输入签到码');
         return;
       }
 
-      const response = await fetch(`/api/student/courses/${courseId}/attendances`, {
+      const response = await authFetch(`/api/student/courses/${courseId}/attendances`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ code: 签到码 }),
@@ -89,14 +70,7 @@ export default function AttendancePage() {
       if (response.ok) {
         const data = await response.json();
         set签到状态(data.message);
-        const attendanceResponse = await fetch(
-          `/api/student/courses/${courseId}/attendances`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const attendanceResponse = await authFetch(`/api/student/courses/${courseId}/attendances`);
         if (attendanceResponse.ok) {
           const attendanceData = await attendanceResponse.json();
           setAttendances(attendanceData.attendances);

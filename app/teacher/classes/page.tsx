@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -22,10 +23,9 @@ export default function TeacherClassesPage() {
     const checkLoginAndGetClasses = async () => {
       try {
         // 从本地存储获取 token
-        const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
-        if (!accessToken || !userData) {
+        if (!userData) {
           // 未登录，重定向到登录页面
           window.location.href = '/';
           return;
@@ -41,11 +41,7 @@ export default function TeacherClassesPage() {
         }
 
         // 获取教师的班级
-        const response = await fetch('/api/teacher/classes', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const response = await authFetch('/api/teacher/classes');
 
         if (!response.ok) {
           throw new Error('获取班级失败');

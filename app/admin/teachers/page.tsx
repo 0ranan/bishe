@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authFetch, logout } from '@/lib/auth-client';
 
 interface Teacher {
   id: string;
@@ -41,10 +42,9 @@ export default function TeacherManagementPage() {
   useEffect(() => {
     const checkLoginAndGetTeachers = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
         const userData = localStorage.getItem('user');
 
-        if (!accessToken || !userData) {
+        if (!userData) {
           window.location.href = '/';
           return;
         }
@@ -57,11 +57,7 @@ export default function TeacherManagementPage() {
           return;
         }
 
-        const response = await fetch('/api/admin/teachers', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const response = await authFetch('/api/admin/teachers');
 
         if (!response.ok) {
           throw new Error('获取教师列表失败');
@@ -84,13 +80,11 @@ export default function TeacherManagementPage() {
 
   const handleAddTeacher = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken || !newTeacherId || !newPassword || !newName) return;
+      if (!newTeacherId || !newPassword || !newName) return;
 
-      const response = await fetch('/api/admin/teachers', {
+      const response = await authFetch('/api/admin/teachers', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -129,10 +123,7 @@ export default function TeacherManagementPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    window.location.href = '/';
+    logout();
   };
 
   const handleBack = () => {

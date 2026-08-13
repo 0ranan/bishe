@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 import { sql } from '@/db/client';
 
 // 定义签到接口
@@ -22,7 +22,7 @@ export interface StudentAttendance {
 export async function GET(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'student');
+    const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
     const { courseId } = await params;
@@ -84,7 +84,10 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
       };
     });
 
-    return NextResponse.json({ attendances }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ attendances }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('获取签到记录失败:', error);
     return NextResponse.json({ error: '获取签到记录失败' }, { status: 500 });
@@ -100,7 +103,7 @@ export async function GET(request: NextRequest, { params }: { params: { courseId
 export async function POST(request: NextRequest, { params }: { params: { courseId: string } }) {
   try {
     // 验证 token
-    const authResult = await withAuth(request, 'student');
+    const authResult = withAuth(request, 'student');
     if (authResult instanceof NextResponse) return authResult;
 
     const { courseId } = await params;
@@ -149,7 +152,10 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
       VALUES (${attendance.id}, ${attendance.course_id}, ${studentId}, ${attendanceTime})
     `;
 
-    return NextResponse.json({ success: true, message: '签到成功' }, { status: 200 });
+    return applyAuthToResponse(
+      NextResponse.json({ success: true, message: '签到成功' }, { status: 200 }),
+      authResult
+    );
   } catch (error) {
     console.error('签到失败:', error);
     return NextResponse.json({ error: '签到失败' }, { status: 500 });

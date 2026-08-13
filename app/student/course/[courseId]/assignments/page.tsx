@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCourse } from '@/lib/course-context';
@@ -40,21 +41,8 @@ export default function AssignmentsPage() {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
 
-        if (!accessToken) {
-          router.push('/');
-          return;
-        }
-
-        const assignmentsResponse = await fetch(
-          `/api/student/courses/${courseId}/assignments`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const assignmentsResponse = await authFetch(`/api/student/courses/${courseId}/assignments`);
 
         if (!assignmentsResponse.ok) {
           throw new Error('获取作业列表失败');
@@ -91,17 +79,9 @@ export default function AssignmentsPage() {
     try {
       setSubmitting(true);
 
-      const accessToken = localStorage.getItem('accessToken');
-
-      if (!accessToken) {
-        router.push('/');
-        return;
-      }
-
-      const response = await fetch(`/api/student/courses/${courseId}/assignments`, {
+      const response = await authFetch(`/api/student/courses/${courseId}/assignments`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -114,14 +94,7 @@ export default function AssignmentsPage() {
         throw new Error('提交作业失败');
       }
 
-      const assignmentsResponse = await fetch(
-        `/api/student/courses/${courseId}/assignments`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const assignmentsResponse = await authFetch(`/api/student/courses/${courseId}/assignments`);
 
       if (!assignmentsResponse.ok) {
         throw new Error('获取作业列表失败');

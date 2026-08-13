@@ -1,7 +1,7 @@
 // 导入必要的库和工具
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/db/client';
-import { withAuth } from '@/lib/middleware';
+import { withAuth, applyAuthToResponse } from '@/lib/middleware';
 
 /**
  * 处理获取教师班级请求
@@ -11,7 +11,7 @@ import { withAuth } from '@/lib/middleware';
 export async function GET(request: NextRequest) {
   try {
     // 验证 token
-    const result = await withAuth(request, 'teacher');
+    const result = withAuth(request, 'teacher');
     if (result instanceof NextResponse) return result;
 
     // 查询教师教授的班级
@@ -37,11 +37,7 @@ export async function GET(request: NextRequest) {
     });
 
     // 如果有新的 token，添加到响应头
-    if (result.newToken) {
-      response.headers.set('x-access-token', result.newToken);
-    }
-
-    return response;
+    return applyAuthToResponse(response, result);
   } catch (error) {
     console.error('获取班级失败:', error);
     return NextResponse.json(
