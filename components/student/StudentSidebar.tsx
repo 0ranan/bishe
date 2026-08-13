@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface StudentSidebarProps {
   courseId: string;
@@ -9,8 +9,6 @@ interface StudentSidebarProps {
 }
 
 export default function StudentSidebar({ courseId, activeMenuItem }: StudentSidebarProps) {
-  const router = useRouter();
-
   const menuItems = [
     { key: 'dashboard', label: '代办界面', path: `/student/course/${courseId}` },
     { key: 'attendance', label: '课程签到', path: `/student/course/${courseId}/attendance` },
@@ -28,13 +26,17 @@ export default function StudentSidebar({ courseId, activeMenuItem }: StudentSide
         <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
         <div className="space-y-2">
           {menuItems.map((item) => (
-            <button 
+            <Link
               key={item.key}
-              onClick={() => router.push(item.path)}
-              className={`w-full text-left p-3 rounded-md ${activeMenuItem === item.key ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-100 text-gray-700'}`}
+              href={item.path}
+              className={`block w-full text-left p-3 rounded-md ${
+                activeMenuItem === item.key
+                  ? 'bg-blue-50 text-blue-600 font-medium'
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}
             >
               {item.label}
-            </button>
+            </Link>
           ))}
         </div>
       </div>

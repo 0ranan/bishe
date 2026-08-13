@@ -1,25 +1,14 @@
 'use client';
 
 import React from 'react';
-
-interface User {
-  id: string;
-  name: string;
-  type: 'student' | 'teacher';
-}
+import Link from 'next/link';
+import { logout, type SessionUser } from '@/lib/auth-client';
 
 interface TeacherNavbarProps {
-  user: User;
+  user: SessionUser;
 }
 
 export default function TeacherNavbar({ user }: TeacherNavbarProps) {
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    window.location.href = '/';
-  };
-
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,9 +17,16 @@ export default function TeacherNavbar({ user }: TeacherNavbarProps) {
             <h1 className="text-xl font-semibold text-gray-900">教师中心</h1>
           </div>
           <div className="flex items-center space-x-4">
+            <Link
+              href="/teacher/profile"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              个人中心
+            </Link>
             <span className="text-gray-700">欢迎，{user.name}</span>
             <button
-              onClick={handleLogout}
+              type="button"
+              onClick={logout}
               className="bg-gray-200 text-gray-700 py-1 px-3 rounded-md hover:bg-gray-300 focus:outline-none"
             >
               登出

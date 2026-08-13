@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Todo API 测试',
-  description: '用于测试 Todo API 的前端页面',
+  title: '基于机器学习的学情诊断系统',
+  description: '面向师生的课程管理、学情诊断与 AI 助教平台',
 }
 
 export default function RootLayout({

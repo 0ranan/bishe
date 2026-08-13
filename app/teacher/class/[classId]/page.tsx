@@ -19,19 +19,11 @@ interface Class {
   student_count: number;
 }
 
-// 定义用户接口
-interface User {
-  id: string;
-  name: string;
-  type: 'student' | 'teacher';
-}
-
 export default function TeacherClassDetailPage() {
   const params = useParams();
   const router = useRouter();
   const classId = params.classId as string;
   
-  const [user, setUser] = useState<User | null>(null);
   const [cls, setCls] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +68,6 @@ export default function TeacherClassDetailPage() {
 
         // 解析用户信息
         const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
 
         // 验证用户类型
         if (parsedUser.type !== 'teacher') {
@@ -392,7 +383,7 @@ export default function TeacherClassDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="text-gray-600">加载中...</div>
       </div>
     );
@@ -400,77 +391,23 @@ export default function TeacherClassDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">教师中心</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">欢迎，{user?.name}</span>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  localStorage.removeItem('user');
-                  window.location.href = '/';
-                }}
-                className="bg-gray-200 text-gray-700 py-1 px-3 rounded-md hover:bg-gray-300 focus:outline-none"
-              >
-                登出
-              </button>
-            </div>
-          </div>
+    <div>
+      {/* 消息提示 */}
+      {message && (
+        <div className={`mb-6 p-4 rounded-md ${messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message}
         </div>
-      </nav>
+      )}
 
-      {/* 主要内容 */}
-      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 侧边栏 */}
-        <div className="w-64 mr-8">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">导航菜单</h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => router.push('/teacher')}
-                  className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
-                >
-                  我的课程
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => router.push('/teacher/classes')}
-                  className="w-full text-left py-2 px-3 rounded-md bg-blue-50 text-blue-600 font-medium"
-                >
-                  我的班级
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* 内容区域 */}
-        <div className="flex-1">
-          {/* 消息提示 */}
-          {message && (
-            <div className={`mb-6 p-4 rounded-md ${messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {message}
-            </div>
-          )}
-
-          {/* 班级信息 */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+      {/* 班级信息 */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">班级详情</h2>
               <div className="flex space-x-2">
@@ -563,25 +500,25 @@ export default function TeacherClassDetailPage() {
             )}
           </div>
 
-          {/* 学生列表 */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">学生列表</h3>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setShowBatchImport(!showBatchImport)}
-                  className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none"
-                >
-                  {showBatchImport ? '取消批量导入' : '批量导入学生'}
-                </button>
-                <button
-                  onClick={() => setShowAddStudent(!showAddStudent)}
-                  className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none"
-                >
-                  {showAddStudent ? '取消添加' : '添加学生'}
-                </button>
-              </div>
-            </div>
+      {/* 学生列表 */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-gray-900">学生列表</h3>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowBatchImport(!showBatchImport)}
+              className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none"
+            >
+              {showBatchImport ? '取消批量导入' : '批量导入学生'}
+            </button>
+            <button
+              onClick={() => setShowAddStudent(!showAddStudent)}
+              className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none"
+            >
+              {showAddStudent ? '取消添加' : '添加学生'}
+            </button>
+          </div>
+        </div>
 
             {/* 批量导入学生表单 */}
             {showBatchImport && (
@@ -785,8 +722,6 @@ export default function TeacherClassDetailPage() {
                 </table>
               </div>
             )}
-          </div>
-        </div>
       </div>
     </div>
   );

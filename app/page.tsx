@@ -119,9 +119,11 @@ export default function Home() {
       // 登录成功
       setLoading(false);
       alert('登录成功！');
-      // 根据用户类型重定向
+      // 根据用户类型重定向（管理员教师进入教师管理）
       if (data.user.type === 'student') {
         window.location.href = '/student';
+      } else if (data.user.type === 'teacher' && data.user.role === 'admin') {
+        window.location.href = '/admin/teachers';
       } else if (data.user.type === 'teacher') {
         window.location.href = '/teacher';
       }

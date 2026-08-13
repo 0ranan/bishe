@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import StudentNavbar from '@/components/student/StudentNavbar';
-import StudentSidebar from '@/components/student/StudentSidebar';
-import CourseInfo from '@/components/student/CourseInfo';
+import { useCourse } from '@/lib/course-context';
+import CourseInfo from '@/components/course/CourseInfo';
+import CourseContentSkeleton from '@/components/course/CourseContentSkeleton';
 import PendingAttendance from '@/components/student/PendingAttendance';
 import VideoList from '@/components/student/VideoList';
 
@@ -14,12 +14,6 @@ interface Video {
   video_url: string;
   duration: string;
   order_index: number;
-}
-
-interface Course {
-  course_id: string;
-  course_name: string;
-  credit: number;
 }
 
 interface Attendance {
@@ -36,15 +30,15 @@ export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
-  
-  const [course, setCourse] = useState<Course | null>(null);
+  const { course, loading: courseLoading, error: courseError } = useCourse();
+
   const [videos, setVideos] = useState<Video[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const fetchModuleData = async () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
 
@@ -53,22 +47,9 @@ export default function CourseDetailPage() {
           return;
         }
 
-        const courseResponse = await fetch(`/api/student/courses/${courseId}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!courseResponse.ok) {
-          throw new Error('获取课程信息失败');
-        }
-
-        const courseData = await courseResponse.json();
-        setCourse(courseData.course);
-
         const videosResponse = await fetch(`/api/student/courses/${courseId}/videos`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
@@ -79,11 +60,14 @@ export default function CourseDetailPage() {
         const videosData = await videosResponse.json();
         setVideos(videosData.videos);
 
-        const attendanceResponse = await fetch(`/api/student/courses/${courseId}/attendances`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+        const attendanceResponse = await fetch(
+          `/api/student/courses/${courseId}/attendances`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
 
         if (attendanceResponse.ok) {
           const attendanceData = await attendanceResponse.json();
@@ -96,46 +80,24 @@ export default function CourseDetailPage() {
       }
     };
 
-    fetchCourseDetails();
+    fetchModuleData();
   }, [courseId, router]);
 
-  const handleBack = () => {
-    router.push('/student');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">加载中...</div>
-      </div>
-    );
+  if (courseLoading || loading) {
+    return <CourseContentSkeleton />;
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-red-600">{error}</div>
-      </div>
-    );
+  if (courseError || error) {
+    return <div className="text-red-600">{courseError || error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <StudentNavbar title="课程详情" onBack={handleBack} />
+    <>
+      {course && <CourseInfo course={course} />}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <StudentSidebar courseId={courseId} activeMenuItem="dashboard" />
+      <PendingAttendance attendances={attendances} courseId={courseId} />
 
-          <div className="lg:col-span-3">
-            {course && <CourseInfo course={course} />}
-
-            <PendingAttendance attendances={attendances} courseId={courseId} />
-
-            <VideoList videos={videos} courseId={courseId} />
-          </div>
-        </div>
-      </main>
-    </div>
+      <VideoList videos={videos} courseId={courseId} />
+    </>
   );
 }

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import TeacherNavbar from '@/components/teacher/TeacherNavbar';
-import TeacherSidebar from '@/components/teacher/TeacherSidebar';
-import CourseInfo from '@/components/teacher/CourseInfo';
+import { useCourse } from '@/lib/course-context';
+import CourseInfo from '@/components/course/CourseInfo';
+import CourseContentSkeleton from '@/components/course/CourseContentSkeleton';
 import MessageToast from '@/components/teacher/MessageToast';
 import ClassBinding from '@/components/teacher/ClassBinding';
 import VideoList from '@/components/teacher/VideoList';
@@ -17,12 +17,6 @@ interface Video {
   order_index: number;
 }
 
-interface Course {
-  course_id: string;
-  course_name: string;
-  credit: number;
-}
-
 interface Class {
   class_id: string;
   class_name: string;
@@ -30,62 +24,32 @@ interface Class {
   is_connected: boolean;
 }
 
-interface User {
-  id: string;
-  name: string;
-  type: 'student' | 'teacher';
-}
-
 export default function TeacherCourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
-  
-  const [user, setUser] = useState<User | null>(null);
-  const [course, setCourse] = useState<Course | null>(null);
+  const { course, loading: courseLoading, error: courseError } = useCourse();
+
   const [videos, setVideos] = useState<Video[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [moduleLoading, setModuleLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const fetchModuleData = async () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
-        const userData = localStorage.getItem('user');
-
-        if (!accessToken || !userData) {
+        if (!accessToken) {
           router.push('/');
           return;
         }
-
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-
-        if (parsedUser.type !== 'teacher') {
-          router.push('/');
-          return;
-        }
-
-        const courseResponse = await fetch(`/api/teacher/courses/${courseId}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!courseResponse.ok) {
-          throw new Error('获取课程信息失败');
-        }
-
-        const courseData = await courseResponse.json();
-        setCourse(courseData.course);
 
         const videosResponse = await fetch(`/api/teacher/courses/${courseId}/videos`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
@@ -98,7 +62,7 @@ export default function TeacherCourseDetailPage() {
 
         const classesResponse = await fetch(`/api/teacher/courses/${courseId}/classes`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
@@ -111,16 +75,12 @@ export default function TeacherCourseDetailPage() {
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取课程详情失败');
       } finally {
-        setLoading(false);
+        setModuleLoading(false);
       }
     };
 
-    fetchCourseDetails();
+    fetchModuleData();
   }, [courseId, router]);
-
-  const handleBack = () => {
-    router.push('/teacher');
-  };
 
   const handleToggleClassConnection = async (classId: string, isConnected: boolean) => {
     try {
@@ -131,7 +91,7 @@ export default function TeacherCourseDetailPage() {
       const response = await fetch(`/api/teacher/courses/${courseId}/classes/${classId}`, {
         method,
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -142,7 +102,7 @@ export default function TeacherCourseDetailPage() {
 
       const classesResponse = await fetch(`/api/teacher/courses/${courseId}/classes`, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -159,39 +119,27 @@ export default function TeacherCourseDetailPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">加载中...</div>
-      </div>
-    );
+  if (courseLoading || moduleLoading) {
+    return <CourseContentSkeleton />;
   }
 
-  if (error) {
+  if (courseError || error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-red-600">{error}</div>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-red-600">{courseError || error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {user && <TeacherNavbar user={user} />}
+    <>
+      <MessageToast message={message} type={messageType} />
 
-      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <TeacherSidebar courseId={courseId} />
+      {course && <CourseInfo course={course} />}
 
-        <div className="flex-1">
-          <MessageToast message={message} type={messageType} />
+      <ClassBinding classes={classes} onToggleConnection={handleToggleClassConnection} />
 
-          {course && <CourseInfo course={course} onBack={handleBack} />}
-
-          <ClassBinding classes={classes} onToggleConnection={handleToggleClassConnection} />
-
-          <VideoList videos={videos} courseId={courseId} />
-        </div>
-      </div>
-    </div>
+      <VideoList videos={videos} courseId={courseId} />
+    </>
   );
 }

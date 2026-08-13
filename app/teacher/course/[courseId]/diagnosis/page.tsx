@@ -3,21 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Chart from 'chart.js/auto';
-import TeacherNavbar from '@/components/teacher/TeacherNavbar';
-import TeacherSidebar from '@/components/teacher/TeacherSidebar';
-import CourseInfo from '@/components/teacher/CourseInfo';
-
-interface Course {
-  course_id: string;
-  course_name: string;
-  credit: number;
-}
-
-interface User {
-  id: string;
-  name: string;
-  type: 'student' | 'teacher';
-}
+import { useCourse } from '@/lib/course-context';
+import CourseInfo from '@/components/course/CourseInfo';
+import CourseContentSkeleton from '@/components/course/CourseContentSkeleton';
 
 // 讨论数据
 interface Discussion {
@@ -191,13 +179,12 @@ export default function TeacherCourseDiagnosisPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
-  
-  const [user, setUser] = useState<User | null>(null);
-  const [course, setCourse] = useState<Course | null>(null);
+  const { course, loading: courseLoading, error: courseError } = useCourse();
+
   const [students, setStudents] = useState<Student[]>([]);
   const [courseOverview, setCourseOverview] = useState<CourseOverview | null>(null);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [moduleLoading, setModuleLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'students'>('overview');
 
@@ -209,41 +196,17 @@ export default function TeacherCourseDiagnosisPage() {
   const charts = useRef<Chart[]>([]);
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const fetchModuleData = async () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
-        const userData = localStorage.getItem('user');
-
-        if (!accessToken || !userData) {
+        if (!accessToken) {
           router.push('/');
           return;
         }
 
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-
-        if (parsedUser.type !== 'teacher') {
-          router.push('/');
-          return;
-        }
-
-        const courseResponse = await fetch(`/api/teacher/courses/${courseId}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!courseResponse.ok) {
-          throw new Error('获取课程信息失败');
-        }
-
-        const courseData = await courseResponse.json();
-        setCourse(courseData.course);
-
-        // 获取课程整体学情数据
         const diagnosisResponse = await fetch(`/api/teacher/courses/${courseId}/diagnosis`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
@@ -257,11 +220,11 @@ export default function TeacherCourseDiagnosisPage() {
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取数据失败');
       } finally {
-        setLoading(false);
+        setModuleLoading(false);
       }
     };
 
-    fetchCourseDetails();
+    fetchModuleData();
   }, [courseId, router]);
 
   useEffect(() => {
@@ -385,372 +348,356 @@ export default function TeacherCourseDiagnosisPage() {
     };
   }, [expandedStudent, students]);
 
-  const handleBack = () => {
-    router.push('/teacher');
-  };
-
   const toggleStudentExpansion = (studentId: string) => {
     setExpandedStudent(expandedStudent === studentId ? null : studentId);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">加载中...</div>
-      </div>
-    );
+  if (courseLoading || moduleLoading) {
+    return <CourseContentSkeleton />;
   }
 
-  if (error) {
+  if (courseError || error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-red-600">{error}</div>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-red-600">{courseError || error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {user && <TeacherNavbar user={user} />}
+    <>
+      {course && <CourseInfo course={course} />}
 
-      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <TeacherSidebar courseId={courseId} activeMenuItem="diagnosis" />
+      {/* 标签切换 */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className="flex border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+              activeTab === 'overview'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            }`}
+          >
+            课程整体学情
+          </button>
+          <button
+            onClick={() => setActiveTab('students')}
+            className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+              activeTab === 'students'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            }`}
+          >
+            学生个体学情
+          </button>
+        </div>
+      </div>
 
-        <div className="flex-1">
-          {course && <CourseInfo course={course} onBack={handleBack} />}
-
-          {/* 标签切换 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-            <div className="flex border-b border-gray-200">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                  activeTab === 'overview'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-              >
-                课程整体学情
-              </button>
-              <button
-                onClick={() => setActiveTab('students')}
-                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                  activeTab === 'students'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-              >
-                学生个体学情
-              </button>
+      {activeTab === 'overview' && courseOverview && (
+        <div className="space-y-6">
+          {/* 平均综合得分 */}
+          <StatCard title="平均综合得分">
+            <div className="flex items-center justify-center">
+              <DonutChart 
+                percentage={courseOverview.avgTotalScore} 
+                color="#3b82f6"
+                size={180}
+                label="班级平均"
+              />
+              <div className="ml-8 space-y-4">
+                <div>
+                  <div className="text-sm text-gray-500">平均得分</div>
+                  <div className="text-4xl font-bold text-blue-600">{courseOverview.avgTotalScore}</div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center">
+                    <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                    <span className="text-gray-600">
+                      {courseOverview.avgTotalScore >= 90 ? '优秀' : 
+                       courseOverview.avgTotalScore >= 80 ? '良好' : 
+                       courseOverview.avgTotalScore >= 70 ? '中等' : 
+                       courseOverview.avgTotalScore >= 60 ? '合格' : '需要改进'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
+          </StatCard>
+
+          {/* 第一行：视频学习和作业情况 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 视频学习 */}
+            <StatCard title="视频学习">
+              <div className="flex items-center justify-between">
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-sm text-gray-500">总视频数</div>
+                    <div className="text-3xl font-bold text-gray-800">{courseOverview.video.totalVideos}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">已观看</div>
+                    <div className="text-3xl font-bold text-green-500">{courseOverview.video.viewedVideos}</div>
+                  </div>
+                </div>
+                <DonutChart 
+                  percentage={courseOverview.video.completionRate} 
+                  color="#10b981"
+                  size={140}
+                />
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">完成率</span>
+                    <span className="font-medium text-green-600">{courseOverview.video.completionRate}%</span>
+                  </div>
+                </div>
+              </div>
+            </StatCard>
+
+            {/* 作业情况 */}
+            <StatCard title="作业情况">
+              <div className="flex items-center justify-between">
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-sm text-gray-500">总作业数</div>
+                    <div className="text-3xl font-bold text-gray-800">{courseOverview.assignment.totalAssignments}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">平均分</div>
+                    <div className="text-3xl font-bold text-yellow-500">{courseOverview.assignment.avgScore}</div>
+                  </div>
+                </div>
+                <DonutChart 
+                  percentage={courseOverview.assignment.completionRate} 
+                  color="#f59e0b"
+                  size={140}
+                />
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">提交率</span>
+                    <span className="font-medium text-yellow-600">{courseOverview.assignment.completionRate}%</span>
+                  </div>
+                </div>
+              </div>
+            </StatCard>
           </div>
 
-          {activeTab === 'overview' && courseOverview && (
-            <div className="space-y-6">
-              {/* 平均综合得分 */}
-              <StatCard title="平均综合得分">
-                <div className="flex items-center justify-center">
-                  <DonutChart 
-                    percentage={courseOverview.avgTotalScore} 
-                    color="#3b82f6"
-                    size={180}
-                    label="班级平均"
-                  />
-                  <div className="ml-8 space-y-4">
-                    <div>
-                      <div className="text-sm text-gray-500">平均得分</div>
-                      <div className="text-4xl font-bold text-blue-600">{courseOverview.avgTotalScore}</div>
-                    </div>
+          {/* 第二行：讨论和课堂活动 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 讨论 */}
+            <StatCard title="讨论">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{courseOverview.discussion.totalTopics}</div>
+                  <div className="text-sm text-gray-600 mt-1">讨论主题</div>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{courseOverview.discussion.totalComments}</div>
+                  <div className="text-sm text-gray-600 mt-1">总评论数</div>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">{courseOverview.discussion.activeStudents}</div>
+                  <div className="text-sm text-gray-600 mt-1">活跃学生</div>
+                </div>
+              </div>
+            </StatCard>
+
+            {/* 课堂活动 */}
+            <StatCard title="课堂活动">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-8 mb-4">
+                    <DonutChart 
+                      percentage={courseOverview.classroomActivity.attendance} 
+                      color="#3b82f6"
+                      size={100}
+                      label="签到"
+                    />
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center">
                         <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
-                        <span className="text-gray-600">
-                          {courseOverview.avgTotalScore >= 90 ? '优秀' : 
-                           courseOverview.avgTotalScore >= 80 ? '良好' : 
-                           courseOverview.avgTotalScore >= 70 ? '中等' : 
-                           courseOverview.avgTotalScore >= 60 ? '合格' : '需要改进'}
-                        </span>
+                        <span className="text-gray-600">签到: {courseOverview.classroomActivity.attendance}%</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                        <span className="text-gray-600">参与: {courseOverview.classroomActivity.participation}%</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </StatCard>
-
-              {/* 第一行：视频学习和作业情况 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* 视频学习 */}
-                <StatCard title="视频学习">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-4">
-                      <div>
-                        <div className="text-sm text-gray-500">总视频数</div>
-                        <div className="text-3xl font-bold text-gray-800">{courseOverview.video.totalVideos}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">已观看</div>
-                        <div className="text-3xl font-bold text-green-500">{courseOverview.video.viewedVideos}</div>
-                      </div>
-                    </div>
-                    <DonutChart 
-                      percentage={courseOverview.video.completionRate} 
-                      color="#10b981"
-                      size={140}
-                    />
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">完成率</span>
-                        <span className="font-medium text-green-600">{courseOverview.video.completionRate}%</span>
-                      </div>
-                    </div>
+                {courseOverview.classroomActivity.topStudents.length > 0 && (
+                  <div className="border-l pl-6">
+                    <div className="text-sm text-gray-500 mb-2 text-center">活跃排行榜</div>
+                    <Leaderboard students={courseOverview.classroomActivity.topStudents} />
                   </div>
-                </StatCard>
-
-                {/* 作业情况 */}
-                <StatCard title="作业情况">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-4">
-                      <div>
-                        <div className="text-sm text-gray-500">总作业数</div>
-                        <div className="text-3xl font-bold text-gray-800">{courseOverview.assignment.totalAssignments}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">平均分</div>
-                        <div className="text-3xl font-bold text-yellow-500">{courseOverview.assignment.avgScore}</div>
-                      </div>
-                    </div>
-                    <DonutChart 
-                      percentage={courseOverview.assignment.completionRate} 
-                      color="#f59e0b"
-                      size={140}
-                    />
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">提交率</span>
-                        <span className="font-medium text-yellow-600">{courseOverview.assignment.completionRate}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </StatCard>
+                )}
               </div>
+            </StatCard>
+          </div>
+        </div>
+      )}
 
-              {/* 第二行：讨论和课堂活动 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* 讨论 */}
-                <StatCard title="讨论">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{courseOverview.discussion.totalTopics}</div>
-                      <div className="text-sm text-gray-600 mt-1">讨论主题</div>
-                    </div>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{courseOverview.discussion.totalComments}</div>
-                      <div className="text-sm text-gray-600 mt-1">总评论数</div>
-                    </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{courseOverview.discussion.activeStudents}</div>
-                      <div className="text-sm text-gray-600 mt-1">活跃学生</div>
-                    </div>
-                  </div>
-                </StatCard>
-
-                {/* 课堂活动 */}
-                <StatCard title="课堂活动">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-8 mb-4">
-                        <DonutChart 
-                          percentage={courseOverview.classroomActivity.attendance} 
-                          color="#3b82f6"
-                          size={100}
-                          label="签到"
-                        />
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center">
-                            <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
-                            <span className="text-gray-600">签到: {courseOverview.classroomActivity.attendance}%</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-                            <span className="text-gray-600">参与: {courseOverview.classroomActivity.participation}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {courseOverview.classroomActivity.topStudents.length > 0 && (
-                      <div className="border-l pl-6">
-                        <div className="text-sm text-gray-500 mb-2 text-center">活跃排行榜</div>
-                        <Leaderboard students={courseOverview.classroomActivity.topStudents} />
-                      </div>
-                    )}
-                  </div>
-                </StatCard>
-              </div>
+      {activeTab === 'students' && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">学生学情分析</h3>
+          
+          {students.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              暂无学生数据
             </div>
-          )}
-
-          {activeTab === 'students' && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">学生学情分析</h3>
-              
-              {students.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  暂无学生数据
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {students.map((student) => (
-                    <div key={student.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleStudentExpansion(student.id)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-600 font-semibold">{student.name.charAt(0)}</span>
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900">{student.name}</h4>
-                            <p className="text-sm text-gray-500">学号: {student.student_id}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          {student.diagnosis ? (
-                            <div className="text-right">
-                              <div className="text-sm text-gray-500">综合得分</div>
-                              <div className="font-semibold text-gray-900">{student.diagnosis.totalScore}</div>
-                            </div>
-                          ) : (
-                            <div className="text-sm text-red-500">{student.error || '数据获取失败'}</div>
-                          )}
-                          <div className="text-gray-400">
-                            {expandedStudent === student.id ? '▼' : '▶'}
-                          </div>
-                        </div>
-                      </button>
-                      
-                      {expandedStudent === student.id && student.diagnosis && (
-                        <div className="p-4 border-t border-gray-200">
-                          <div className="mb-8">
-                            <h4 className="text-lg font-medium text-gray-800 mb-4">综合得分</h4>
-                            <div className="flex flex-col md:flex-row items-center justify-center">
-                              <div className="w-48 h-48 mb-4 md:mb-0">
-                                <canvas ref={totalScoreChartRef}></canvas>
-                              </div>
-                              <div className="md:ml-8">
-                                <div className="mb-2">
-                                  <div className="text-sm text-gray-500">预测成绩等级</div>
-                                  <div className="text-lg font-semibold text-gray-900">{student.diagnosis.predictedGrade}</div>
-                                </div>
-                                <div>
-                                  <div className="text-sm text-gray-500">学习状态</div>
-                                  <div className="text-md font-medium text-green-600">
-                                    {student.diagnosis.totalScore >= 80 ? '优秀' : 
-                                     student.diagnosis.totalScore >= 60 ? '良好' : '需要改进'}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mb-8">
-                            <h4 className="text-lg font-medium text-gray-800 mb-4">学习行为指标</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="text-gray-700">音视频学习完成率</span>
-                                  <span className="font-medium text-green-600">{student.diagnosis.learningBehavior.videoLearning}%</span>
-                                </div>
-                                <div className="w-full h-32">
-                                  <canvas ref={videoChartRef}></canvas>
-                                </div>
-                              </div>
-
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="text-gray-700">资料自主学习完成率</span>
-                                  <span className="font-medium text-indigo-600">{student.diagnosis.learningBehavior.materialLearning}%</span>
-                                </div>
-                                <div className="w-full h-32">
-                                  <canvas ref={materialChartRef}></canvas>
-                                </div>
-                              </div>
-
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="text-gray-700">讨论参与度</span>
-                                  <span className="font-medium text-purple-600">{student.diagnosis.learningBehavior.discussion}%</span>
-                                </div>
-                                <div className="w-full h-32">
-                                  <canvas ref={discussionChartRef}></canvas>
-                                </div>
-                              </div>
-
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="text-gray-700">签到完成率</span>
-                                  <span className="font-medium text-orange-600">{student.diagnosis.learningBehavior.attendance}%</span>
-                                </div>
-                                <div className="w-full h-32">
-                                  <canvas ref={attendanceChartRef}></canvas>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-700">章节学习次数</span>
-                                <span className="font-medium text-blue-600">{student.diagnosis.learningBehavior.chapterStudyCount}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mb-8">
-                            <h4 className="text-lg font-medium text-gray-800 mb-4">作业情况</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="text-sm text-gray-500 mb-1">总作业数</div>
-                                <div className="text-xl font-semibold text-gray-900">{student.diagnosis.assignment.total_assignments}</div>
-                              </div>
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="text-sm text-gray-500 mb-1">已提交</div>
-                                <div className="text-xl font-semibold text-gray-900">{student.diagnosis.assignment.submitted_assignments}</div>
-                              </div>
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="text-sm text-gray-500 mb-1">提交率</div>
-                                <div className="text-xl font-semibold text-gray-900">{student.diagnosis.assignment.submission_rate}%</div>
-                              </div>
-                            </div>
-                            <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-700">平均分数</span>
-                                <span className="font-medium text-yellow-600">{student.diagnosis.assignment.avg_score}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h4 className="text-lg font-medium text-gray-800 mb-4">学习建议</h4>
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                              <ul className="space-y-2">
-                                {student.diagnosis.suggestions.map((suggestion, index) => (
-                                  <li key={index} className="flex items-start">
-                                    <span className="text-blue-600 mr-2 mt-1">•</span>
-                                    <span className="text-gray-700">{suggestion}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+          ) : (
+            <div className="space-y-4">
+              {students.map((student) => (
+                <div key={student.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => toggleStudentExpansion(student.id)}
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold">{student.name.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{student.name}</h4>
+                        <p className="text-sm text-gray-500">学号: {student.student_id}</p>
+                      </div>
                     </div>
-                  ))}
+                    <div className="flex items-center space-x-4">
+                      {student.diagnosis ? (
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">综合得分</div>
+                          <div className="font-semibold text-gray-900">{student.diagnosis.totalScore}</div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-red-500">{student.error || '数据获取失败'}</div>
+                      )}
+                      <div className="text-gray-400">
+                        {expandedStudent === student.id ? '▼' : '▶'}
+                      </div>
+                    </div>
+                  </button>
+                  
+                  {expandedStudent === student.id && student.diagnosis && (
+                    <div className="p-4 border-t border-gray-200">
+                      <div className="mb-8">
+                        <h4 className="text-lg font-medium text-gray-800 mb-4">综合得分</h4>
+                        <div className="flex flex-col md:flex-row items-center justify-center">
+                          <div className="w-48 h-48 mb-4 md:mb-0">
+                            <canvas ref={totalScoreChartRef}></canvas>
+                          </div>
+                          <div className="md:ml-8">
+                            <div className="mb-2">
+                              <div className="text-sm text-gray-500">预测成绩等级</div>
+                              <div className="text-lg font-semibold text-gray-900">{student.diagnosis.predictedGrade}</div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-500">学习状态</div>
+                              <div className="text-md font-medium text-green-600">
+                                {student.diagnosis.totalScore >= 80 ? '优秀' : 
+                                 student.diagnosis.totalScore >= 60 ? '良好' : '需要改进'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mb-8">
+                        <h4 className="text-lg font-medium text-gray-800 mb-4">学习行为指标</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-gray-700">音视频学习完成率</span>
+                              <span className="font-medium text-green-600">{student.diagnosis.learningBehavior.videoLearning}%</span>
+                            </div>
+                            <div className="w-full h-32">
+                              <canvas ref={videoChartRef}></canvas>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-gray-700">资料自主学习完成率</span>
+                              <span className="font-medium text-indigo-600">{student.diagnosis.learningBehavior.materialLearning}%</span>
+                            </div>
+                            <div className="w-full h-32">
+                              <canvas ref={materialChartRef}></canvas>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-gray-700">讨论参与度</span>
+                              <span className="font-medium text-purple-600">{student.diagnosis.learningBehavior.discussion}%</span>
+                            </div>
+                            <div className="w-full h-32">
+                              <canvas ref={discussionChartRef}></canvas>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-gray-700">签到完成率</span>
+                              <span className="font-medium text-orange-600">{student.diagnosis.learningBehavior.attendance}%</span>
+                            </div>
+                            <div className="w-full h-32">
+                              <canvas ref={attendanceChartRef}></canvas>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-700">章节学习次数</span>
+                            <span className="font-medium text-blue-600">{student.diagnosis.learningBehavior.chapterStudyCount}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mb-8">
+                        <h4 className="text-lg font-medium text-gray-800 mb-4">作业情况</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-500 mb-1">总作业数</div>
+                            <div className="text-xl font-semibold text-gray-900">{student.diagnosis.assignment.total_assignments}</div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-500 mb-1">已提交</div>
+                            <div className="text-xl font-semibold text-gray-900">{student.diagnosis.assignment.submitted_assignments}</div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-500 mb-1">提交率</div>
+                            <div className="text-xl font-semibold text-gray-900">{student.diagnosis.assignment.submission_rate}%</div>
+                          </div>
+                        </div>
+                        <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-700">平均分数</span>
+                            <span className="font-medium text-yellow-600">{student.diagnosis.assignment.avg_score}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-800 mb-4">学习建议</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <ul className="space-y-2">
+                            {student.diagnosis.suggestions.map((suggestion, index) => (
+                              <li key={index} className="flex items-start">
+                                <span className="text-blue-600 mr-2 mt-1">•</span>
+                                <span className="text-gray-700">{suggestion}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
           )}
         </div>
-      </div>
+      )}
 
       <button
         onClick={() => router.push(`/teacher/course/${courseId}/diagnosis/bigscreen`)}
@@ -762,6 +709,6 @@ export default function TeacherCourseDiagnosisPage() {
         </svg>
         <span className="font-medium">学情诊断大屏</span>
       </button>
-    </div>
+    </>
   );
 }
