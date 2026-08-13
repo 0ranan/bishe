@@ -1,0 +1,16 @@
+---
+description: 学情诊断/ML 推理禁止规则引擎等降级旁路，失败须显式错误
+globs: app/api/**/diagnosis/**/*.ts,lib/diagnosis.ts,lib/grpc-prediction.ts,python/**/*.py
+alwaysApply: false
+---
+
+# 禁止模型降级
+
+涉及 gRPC / 成绩预测 / 学情诊断推理时：
+
+1. 禁止失败时回退规则引擎、阈值打分、if-else 等级映射、启发式公式
+2. 禁止 `predictionSource: 'rule'`、`fallback`、`degrade`、静默假预测
+3. 服务不可用必须返回明确错误（如 503），不得凑成功响应
+4. 本地调试可用显式 mock / feature flag，不得进默认生产路径，代码须标注仅限开发
+
+预测必须走真实模型服务；失败由调用方重试或提示不可用。

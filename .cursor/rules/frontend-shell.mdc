@@ -1,0 +1,35 @@
+---
+description: 师生端壳层与课程导航约定，避免重复拉数与双层壳
+globs: app/teacher/**/*.tsx,app/student/**/*.tsx,app/admin/**/*.tsx,components/teacher/**/*.tsx,components/student/**/*.tsx,components/course/**/*.tsx,lib/course-context.tsx,lib/auth-client.ts,app/page.tsx
+alwaysApply: false
+---
+
+# 前端壳层约束
+
+## 布局
+
+- 角色壳：`app/teacher/layout.tsx`、`app/student/layout.tsx`（顶栏 + 全局侧栏）
+- 课程壳：`app/*/course/[courseId]/layout.tsx`（顶栏 + 侧栏 + `CourseProvider`）
+- 课程路由不要再套一层角色壳的顶栏/侧栏；教师 layout 对 `/teacher/course/*` 直接 `children`
+- 大屏 `diagnosis/bigscreen` 保持全屏，不走课程壳 UI
+
+## 课程数据
+
+- 课程信息只通过 `CourseProvider` / `useCourse()` 拉取一次
+- 模块页禁止再 `fetch` 课程详情；用 `CourseInfo` + context
+- 模块内加载态用 `CourseContentSkeleton`，禁止空白「加载中...」占满主区
+
+## 导航
+
+- 教师全局项在 `TeacherGlobalNav`；课程模块在 `TeacherCourseNav`
+- `role === 'admin'` 须在 `TeacherGlobalNav` 显示「教师管理」→ `/admin/teachers`
+- 登出统一用 `lib/auth-client` 的 `logout()` / `clearSession()`
+
+## 共享组件
+
+- 师生共用课程信息：`components/course/CourseInfo.tsx`，不要再拆师生两份
+
+## 管理员入口
+
+- 登录：`teacher` 且 `role === 'admin'` → `/admin/teachers`；普通教师 → `/teacher`
+- `/admin/teachers` 仍须页内/API 校验 admin；无入口不算修好权限

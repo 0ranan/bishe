@@ -1,0 +1,12 @@
+---
+description: 改环境变量须同步 .env.example，禁止提交真实密钥
+globs: .env*,docker-compose*.yml,lib/**/*.ts,app/api/**/*.ts,python/**/*.py
+alwaysApply: false
+---
+
+# 环境变量与示例同步
+
+- 新增/重命名/删除 env，或改代码/`docker-compose` 中的 `${ENV}` 引用时，同一变更内更新 `.env.example`
+- 示例中密码、Token、API Key、JWT 留空或占位符，禁止真实密钥
+- 同步键名、分段注释与非敏感默认值；删除已废弃键
+- 提交前确认 diff 不含真实密钥
