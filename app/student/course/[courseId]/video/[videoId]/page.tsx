@@ -196,23 +196,23 @@ export default function VideoPlayerPage() {
       {course && <CourseInfo course={course} />}
 
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="lg:w-1/4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 sticky top-4">
+        <div className="w-full lg:w-72 shrink-0 min-w-0">
+          <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 sticky top-4 overflow-hidden">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">课程视频列表</h3>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {videos.map((v) => (
                 <button
                   key={v.id}
                   onClick={() =>
                     router.push(`/student/course/${courseId}/video/${v.id}`)
                   }
-                  className={`w-full text-left p-3 rounded-md flex items-center ${
+                  className={`w-full min-w-0 text-left px-3.5 py-3.5 rounded-md flex items-center gap-3 ${
                     v.id === videoId
                       ? 'bg-blue-50 border-l-4 border-blue-600'
                       : 'hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded flex items-center justify-center mr-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
                     <svg
                       className="w-4 h-4 text-gray-500"
                       fill="none"
@@ -234,11 +234,11 @@ export default function VideoPlayerPage() {
                       />
                     </svg>
                   </div>
-                  <div className="flex-grow">
-                    <h4 className="font-medium text-gray-900 text-sm truncate">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-gray-900 text-sm truncate" title={v.title}>
                       {v.title}
                     </h4>
-                    <div className="text-xs text-gray-500">时长: {v.duration}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">时长: {v.duration}</div>
                   </div>
                 </button>
               ))}
@@ -246,7 +246,7 @@ export default function VideoPlayerPage() {
           </div>
         </div>
 
-        <div className="lg:w-3/4">
+        <div className="flex-1 min-w-0">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">{video?.title}</h2>
             <div className="aspect-w-16 aspect-h-9 mb-4">

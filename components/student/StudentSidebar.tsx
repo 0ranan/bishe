@@ -21,15 +21,15 @@ export default function StudentSidebar({ courseId, activeMenuItem }: StudentSide
   ];
 
   return (
-    <div className="lg:col-span-1">
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">课程功能</h3>
-        <div className="space-y-2">
+    <div className="w-full lg:w-44 shrink-0">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 sticky top-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 px-1">课程功能</h3>
+        <div className="space-y-0.5">
           {menuItems.map((item) => (
             <Link
               key={item.key}
               href={item.path}
-              className={`block w-full text-left p-3 rounded-md ${
+              className={`block w-full text-left px-3 py-2 rounded-md ${
                 activeMenuItem === item.key
                   ? 'bg-blue-50 text-blue-600 font-medium'
                   : 'hover:bg-gray-100 text-gray-700'
