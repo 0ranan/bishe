@@ -27,6 +27,26 @@ class ModelLoader:
         self.grade_mapping = joblib.load('models/grade_mapping.pkl')
         print("模型加载完成")
 
+# pickle 中文列名 → PredictRequest 字段（顺序以 features.pkl 为准）
+FEATURE_TO_REQUEST = {
+    '音视频学习(100%)': 'video_learning',
+    '资料自主学习(100%)': 'material_learning',
+    '章节学习次数': 'chapter_study_count',
+    '讨论(100%)': 'discussion',
+    '签到(100%)': 'attendance',
+}
+
+
+def features_from_request(request, feature_names):
+    vector = []
+    for name in feature_names:
+        field = FEATURE_TO_REQUEST.get(name)
+        if field is None:
+            raise ValueError(f'features.pkl 含未知列名: {name}')
+        vector.append(getattr(request, field))
+    return vector
+
+
 # 实现学生分析服务
 class StudentAnalysisService(student_analysis_pb2_grpc.StudentAnalysisServiceServicer):
     def __init__(self):
@@ -34,41 +54,30 @@ class StudentAnalysisService(student_analysis_pb2_grpc.StudentAnalysisServiceSer
     
     def PredictGrade(self, request, context):
         print("接收到预测请求...")
-        
-        # 准备特征数据
-        features = [
-            request.video_learning,
-            request.material_learning,
-            request.chapter_study_count,
-            request.discussion,
-            request.attendance
-        ]
-        
-        # 数据标准化
-        features_scaled = self.model_loader.scaler.transform([features])
-        
-        # 预测
-        prediction = self.model_loader.model.predict(features_scaled)[0]
-        
-        # 获取置信度
+
         try:
-            # 对于分类模型，获取预测概率
+            features = features_from_request(request, self.model_loader.features)
+            features_scaled = self.model_loader.scaler.transform([features])
+            prediction = self.model_loader.model.predict(features_scaled)[0]
             if hasattr(self.model_loader.model, 'predict_proba'):
                 probabilities = self.model_loader.model.predict_proba(features_scaled)[0]
                 confidence = float(max(probabilities))
             else:
-                confidence = 0.0
-        except:
-            confidence = 0.0
-        
-        # 转换为成绩等级
-        # 反转grade_mapping的键值对，因为实际存储的是{grade: code}而不是{code: grade}
+                raise RuntimeError('模型无 predict_proba，拒绝无置信度的假成功')
+        except Exception as e:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f'预测失败: {e}')
+            return student_analysis_pb2.PredictResponse()
+
         reverse_mapping = {v: k for k, v in self.model_loader.grade_mapping.items()}
-        grade = reverse_mapping.get(prediction, "未知")
-        
+        grade = reverse_mapping.get(int(prediction))
+        if grade is None:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f'未知 grade_code: {prediction}')
+            return student_analysis_pb2.PredictResponse()
+
         print(f"预测结果: {grade} (置信度: {confidence:.2f})")
-        
-        # 返回响应
+
         return student_analysis_pb2.PredictResponse(
             grade=grade,
             grade_code=int(prediction),
